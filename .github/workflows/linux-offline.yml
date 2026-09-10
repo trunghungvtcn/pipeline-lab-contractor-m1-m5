@@ -58,4 +58,4 @@ jobs:
       - name: Image digest
         run: docker image inspect contractor-accept:candidate --format '{{json .RepoDigests}} {{.Id}}'
       - name: Run tests with network disabled
-        run: docker run --rm --network=none --env PYTHONDONTWRITEBYTECODE=1 --env PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 contractor-accept:candidate
+        run: docker run --rm --network=none --env PYTHONDONTWRITEBYTECODE=1 --env PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 --env LINUX_DOCKER_VERIFIED=1 contractor-accept:candidate

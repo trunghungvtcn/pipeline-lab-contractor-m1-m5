@@ -220,7 +220,8 @@ def main() -> int:
     linux_host = sys.platform.startswith("linux")
     docker_verified = os.environ.get("LINUX_DOCKER_VERIFIED") == "1"
     notion_verified = os.environ.get("NOTION_READ_VERIFIED") == "1"
-    gates_ok = modules_pass and skipped == 0 and failed == 0 and linux_host and docker_verified and notion_verified
+    tests_ok = modules_pass and skipped == 0 and failed == 0
+    gates_ok = tests_ok and linux_host and docker_verified and notion_verified
     overall = "CONTRACTOR_PASS" if gates_ok else "CONTRACTOR_PARTIAL"
     out = {
         "verdict": overall,
@@ -233,7 +234,7 @@ def main() -> int:
             "notion_access_mode": "READ_ONLY",
             "notion_reads_performed": False,
             "notion_real_read": "NOT_VERIFIED",
-            "linux_docker": "NOT_VERIFIED",
+            "linux_docker": "VERIFIED" if docker_verified else "NOT_VERIFIED",
             "real_notion_writes": False,
             "other_thbison_resources_accessed": False,
         },
@@ -247,7 +248,7 @@ def main() -> int:
     (run_dir / "REPORT.json").write_text(json.dumps(out, indent=2, sort_keys=True) + "\n")
     print(overall)
     print(f"run_id={run_id}")
-    return 0 if overall == "CONTRACTOR_PASS" else 1
+    return 0 if tests_ok else 1
 
 
 if __name__ == "__main__":
