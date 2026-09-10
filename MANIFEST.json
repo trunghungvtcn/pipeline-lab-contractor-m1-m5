@@ -1,9 +1,9 @@
 {
   "entries": [
     {
-      "bytes": 2055,
+      "bytes": 2648,
       "path": ".github/workflows/linux-offline.yml",
-      "sha256": "df097e647e81367c08faee7cfb03026cd64a7a5ee5e87f773f9b646653f4b52f"
+      "sha256": "5ec18ffbb8d4ac1e6f506dc4d98ff2ea3ab1a47d7ce3c5015379c878b725eb6e"
     },
     {
       "bytes": 431,
@@ -11,9 +11,14 @@
       "sha256": "0d72d83b8a6595dc02bf2773edfecbbc9f63eb0156c4c8cd35216a76e046558e"
     },
     {
-      "bytes": 1337,
+      "bytes": 958,
       "path": "FIXES.md",
-      "sha256": "19ed734ac578c7514e6c1c038e8ae55dd8e50ae29d59710a5752dccbc7bc1af1"
+      "sha256": "84fa6ec144f3eeec84e975074c9a00d87b801756ca5e5f8e7edf2a1795e673ae"
+    },
+    {
+      "bytes": 639,
+      "path": "NOTION_GATE.md",
+      "sha256": "90ecb7020bdc824dc9d5c65e587f5d951bc74158b7d5ce79db08b1445b9b7e78"
     },
     {
       "bytes": 1297,
@@ -21,9 +26,9 @@
       "sha256": "91054fc18860f51a62b6c7e36caf7f3fb78b56d048b10752ebd59f3a9798b526"
     },
     {
-      "bytes": 504,
+      "bytes": 826,
       "path": "README.md",
-      "sha256": "377954eb647bae6253beb644dba6defdc1e13b73e401bad2753175dbf9abdb7c"
+      "sha256": "84c2164f43e565df5a5b6fd836096077b3e5a91ba5175af070359e07490f8dec"
     },
     {
       "bytes": 10896,
@@ -431,9 +436,19 @@
       "sha256": "705ad68e46f5477c9f0c89eeb80bb14b9b8aca6685e6a2c881efadac712ea448"
     },
     {
-      "bytes": 8685,
+      "bytes": 8724,
       "path": "run_all.py",
-      "sha256": "f32aaf73821da30037085187a6dfd99b19a9b59b3c515c027fa14b39ffae14b3"
+      "sha256": "e8661d5bc904acf2b6f2afb021148032c6b9ee5b9c5b74df0722a4f0d87e356a"
+    },
+    {
+      "bytes": 3154,
+      "path": "scripts/pack_linux_evidence.py",
+      "sha256": "a4f0f437fcf616dc8c5a6cff45d93b0b617d711d7e7acfbf9aa90e08c72314e2"
+    },
+    {
+      "bytes": 3168,
+      "path": "scripts/verify_release_tree.py",
+      "sha256": "862ff048b9f48692059eee4a7ffc5340df30aef85fc8fa00c96458d6a8f2d958"
     },
     {
       "bytes": 1607,
@@ -557,7 +572,7 @@
     "node_modules",
     "private"
   ],
-  "files": 109,
+  "files": 112,
   "name": "pipeline-lab-contractor-m1-m5",
   "packed_at": "2026-09-10T06:10:00Z",
   "packer": "python3 zipfile.ZIP_DEFLATED",

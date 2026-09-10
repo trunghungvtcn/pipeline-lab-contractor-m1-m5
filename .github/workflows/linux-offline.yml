@@ -7,6 +7,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: write
+  actions: read
+
 jobs:
   pytest-python312:
     name: Linux Python 3.12 offline pytest
@@ -27,7 +31,7 @@ jobs:
         if: always()
         run: |
           python - <<'PY'
-          import json, os, platform, sys, hashlib, pathlib
+          import os, platform, sys, hashlib, pathlib
           print("python", sys.version)
           print("platform", platform.platform())
           print("kernel", os.uname().release)
@@ -38,6 +42,9 @@ jobs:
               print(f"wheel {p.name} {h}")
           PY
           uname -a
+      - name: Pack public linux-junit
+        if: always()
+        run: python scripts/pack_linux_evidence.py . linux-junit.zip
       - name: Upload JUnit and logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -45,8 +52,16 @@ jobs:
           name: linux-junit
           path: |
             artifacts/**
+            linux-junit.zip
             **/REPORT.json
             **/junit.xml
+      - name: Publish JUnit on GitHub Release (anonymous HTTPS)
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          unzip -p linux-junit.zip linux-junit/linux-evidence.json > linux-evidence.json
+          gh release upload "${GITHUB_REF_NAME}" linux-junit.zip linux-evidence.json --clobber
 
   docker-network-none:
     name: Pinned image, network-none tests
