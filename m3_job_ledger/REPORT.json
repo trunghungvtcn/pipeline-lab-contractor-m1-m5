@@ -1,0 +1,38 @@
+{
+  "blockers": [],
+  "boundary": {
+    "notion_access_mode": "READ_ONLY",
+    "notion_reads_performed": false,
+    "notion_real_read": "NOT_VERIFIED",
+    "other_thbison_resources_accessed": false,
+    "real_notion_writes": false
+  },
+  "module": "M3",
+  "node_ids": [
+    "tests.test_cas::test_r06_cancel_finalize_race",
+    "tests.test_cas::test_r07_negative_and_over_budget",
+    "tests.test_cas::test_r08_crash_reclaim_bounded",
+    "tests.test_cas::test_terminal_replay_same_result_idempotent",
+    "tests.test_cas::test_loads_strict_rejects_nan",
+    "tests.test_ledger::test_duplicate_admit_one_job",
+    "tests.test_ledger::test_digest_conflict",
+    "tests.test_ledger::test_concurrent_admit",
+    "tests.test_ledger::test_two_controllers_one_claim",
+    "tests.test_ledger::test_stale_worker_cannot_finalize",
+    "tests.test_ledger::test_restart_persists_counters",
+    "tests.test_ledger::test_terminal_replay_no_restart",
+    "tests.test_ledger::test_cancel_blocks_late_output",
+    "tests.test_ledger::test_budget_no_race"
+  ],
+  "python": "3.10.21",
+  "source_sha256": "16454a51aae94aa0043c9ab254ca1803b70d2cb584a7a28756bd05a58cb7a6fd",
+  "stdout_tail": "..............                                                           [100%]",
+  "tests": {
+    "collected": 14,
+    "exit_code": 0,
+    "failed": 0,
+    "passed": 14,
+    "skipped": 0
+  },
+  "verdict": "PASS"
+}

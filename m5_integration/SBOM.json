@@ -1,0 +1,7 @@
+{
+  "dependencies": [
+    "pytest"
+  ],
+  "module": "m5_integration",
+  "python_requires": ">=3.10"
+}

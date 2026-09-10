@@ -1,0 +1,32 @@
+[project]
+name = "grok-pipeline"
+version = "1.1.0"
+description = "M5 integration harness over M1–M4 public APIs"
+requires-python = ">=3.10"
+dependencies = [
+  "grok-locator==1.1.0",
+  "grok-asset-store==1.1.0",
+  "grok-job-ledger==1.1.0",
+  "grok-notion-projection==1.1.0",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [
+  "src",
+  "../m1_locator/src",
+  "../m2_asset_store/src",
+  "../m3_job_ledger/src",
+  "../m4_notion_projection/src",
+]
+addopts = "-q"
+filterwarnings = [
+  "error::pytest.PytestUnhandledThreadExceptionWarning",
+]

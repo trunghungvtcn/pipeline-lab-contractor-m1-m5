@@ -1,0 +1,7 @@
+{
+  "dependencies": [
+    "pytest"
+  ],
+  "module": "m4_notion_projection",
+  "python_requires": ">=3.10"
+}

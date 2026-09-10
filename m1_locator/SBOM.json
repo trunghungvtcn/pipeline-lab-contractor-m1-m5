@@ -1,0 +1,7 @@
+{
+  "dependencies": [
+    "pytest"
+  ],
+  "module": "m1_locator",
+  "python_requires": ">=3.10"
+}

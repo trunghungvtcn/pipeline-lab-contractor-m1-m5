@@ -1,0 +1,41 @@
+{
+  "verdict": "CONTRACTOR_PASS",
+  "production_ready": false,
+  "merged": false,
+  "deployed": false,
+  "scheduler_enabled": false,
+  "model_training": "NOT_RUN",
+  "knowledge_approval_changed": false,
+  "candidate_sha": "3f1f125f3ccb6b5fbf173c2aa0e10b5d3b30584b",
+  "branch": "fix/migration-architecture-alignment",
+  "pull_request": 1,
+  "pull_request_draft": true,
+  "python_sandbox": "3.10.21",
+  "python_spec": "3.12",
+  "contractor_modules": {
+    "verdict": "CONTRACTOR_PASS",
+    "tests": {"collected": 78, "passed": 78, "failed": 0, "skipped": 0}
+  },
+  "github_ci": {
+    "job": "offline-verify",
+    "run_id": 34429494332,
+    "passed": 413,
+    "failed": 6,
+    "conclusion": "failure",
+    "cause": "FileNotFoundError on gitignored/external assets — not part of this contractor ZIP"
+  },
+  "notion": {
+    "access_mode": "READ_ONLY",
+    "reads_performed": false,
+    "real_writes": false,
+    "knowledge_databases_queried": false,
+    "real_read": "NOT_VERIFIED",
+    "linux_docker": "NOT_VERIFIED"
+  },
+  "review_round": "F01-F14 vendor fix 2026-09-10",
+  "blockers": [
+    "linux_docker NOT_VERIFIED (image declared, container not run here)",
+    "notion_real_read NOT_VERIFIED",
+    "GitHub CI of Knowledge Factory still red on gitignored assets — out of this package"
+  ]
+}

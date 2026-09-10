@@ -1,0 +1,40 @@
+{
+  "blockers": [],
+  "boundary": {
+    "notion_access_mode": "READ_ONLY",
+    "notion_reads_performed": false,
+    "notion_real_read": "NOT_VERIFIED",
+    "other_thbison_resources_accessed": false,
+    "real_notion_writes": false
+  },
+  "module": "M1",
+  "node_ids": [
+    "tests.test_resolver::test_posix_and_windows_same_bytes",
+    "tests.test_resolver::test_same_basename_different_bytes",
+    "tests.test_resolver::test_missing_profile_rejected",
+    "tests.test_resolver::test_rejects_before_read",
+    "tests.test_resolver::test_symlink_escape",
+    "tests.test_resolver::test_symlink_cycle_finite",
+    "tests.test_resolver::test_depth_cap",
+    "tests.test_resolver::test_non_nfc_rejected",
+    "tests.test_resolver::test_case_alias_rejected",
+    "tests.test_resolver::test_canonical_json_sorted_compact",
+    "tests.test_resolver::test_duplicate_json_key_rejected",
+    "tests.test_resolver::test_loads_strict_rejects_nonfinite",
+    "tests.test_resolver::test_expected_hash_mismatch",
+    "tests.test_resolver::test_dot_and_double_sep_rejected",
+    "tests.test_resolver::test_no_read_on_rejected_locator",
+    "tests.test_resolver::test_validate_does_not_touch_fs"
+  ],
+  "python": "3.10.21",
+  "source_sha256": "7191705239f3c4bf9660a3d2b7360c62ff9a29b77afe52d8f3758de1e3bd2201",
+  "stdout_tail": "................                                                         [100%]",
+  "tests": {
+    "collected": 16,
+    "exit_code": 0,
+    "failed": 0,
+    "passed": 16,
+    "skipped": 0
+  },
+  "verdict": "PASS"
+}

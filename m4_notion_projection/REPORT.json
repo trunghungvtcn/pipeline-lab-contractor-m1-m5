@@ -1,0 +1,46 @@
+{
+  "blockers": [],
+  "boundary": {
+    "notion_access_mode": "READ_ONLY",
+    "notion_reads_performed": false,
+    "notion_real_read": "NOT_VERIFIED",
+    "other_thbison_resources_accessed": false,
+    "real_notion_writes": false
+  },
+  "module": "M4",
+  "node_ids": [
+    "tests.test_gates::test_r09_readonly_blocks_projection_and_unknown",
+    "tests.test_gates::test_r10_same_revision_terminal_rollback",
+    "tests.test_gates::test_r11_untrusted_retry_override",
+    "tests.test_gates::test_r15_unmapped_and_protected_fields",
+    "tests.test_gates::test_same_event_payload_conflict",
+    "tests.test_gates::test_read_ops_unchanged",
+    "tests.test_gates::test_acquire_missing_target",
+    "tests.test_gates::test_acquire_pagination_and_drift",
+    "tests.test_gates::test_redirect_does_not_forward_auth",
+    "tests.test_gates::test_loads_strict_rejects_nan",
+    "tests.test_projection::test_happy_path_projects_status",
+    "tests.test_projection::test_auth_and_scope_before_write",
+    "tests.test_projection::test_duplicate_event_idempotent",
+    "tests.test_projection::test_old_revision_does_not_rollback",
+    "tests.test_projection::test_timeout_retries_without_compute",
+    "tests.test_projection::test_timeout_budget_exhausted",
+    "tests.test_projection::test_terminal_does_not_return_to_ready",
+    "tests.test_projection::test_unknown_mapping_rejected",
+    "tests.test_readonly::test_read_only_blocks_named_mutations_not_query",
+    "tests.test_readonly::test_attachment_redirect_does_not_forward_credential",
+    "tests.test_redaction::test_redact_token_and_signed_url",
+    "tests.test_redaction::test_snapshot_receipt_hashes_redacted_markdown"
+  ],
+  "python": "3.10.21",
+  "source_sha256": "68eff547f3c00a1195de651c971f87e3d2d88dc65296a92c8eac038a79763f75",
+  "stdout_tail": "......................                                                   [100%]",
+  "tests": {
+    "collected": 22,
+    "exit_code": 0,
+    "failed": 0,
+    "passed": 22,
+    "skipped": 0
+  },
+  "verdict": "PASS"
+}

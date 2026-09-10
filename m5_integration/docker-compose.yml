@@ -1,0 +1,9 @@
+services:
+  accept:
+    build:
+      context: ..
+      dockerfile: m5_integration/Dockerfile
+    working_dir: /src
+    network_mode: none
+    environment:
+      PYTHONDONTWRITEBYTECODE: "1"

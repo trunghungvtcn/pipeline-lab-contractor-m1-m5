@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "notice": "Fully synthetic contractor fixtures; no THBISON data or identifiers.",
+  "tenant": "demo-tenant",
+  "locator_cases": [
+    {"locator": "docs/manual.txt", "dialect": "posix", "content": "Synthetic lifting manual revision A."},
+    {"locator": "docs\\manual.txt", "dialect": "windows", "content": "Synthetic lifting manual revision A."},
+    {"locator": "a/same.txt", "dialect": "posix", "content": "A"},
+    {"locator": "b/same.txt", "dialect": "posix", "content": "B"}
+  ],
+  "job_request": {
+    "scope": "demo-tenant/synthetic-project",
+    "idempotency_key": "demo-job-001",
+    "request": {"source_id": "synthetic-manual", "operation": "extract_demo_claims"}
+  },
+  "fake_compute_result": {
+    "status": "SUCCEEDED",
+    "claims": [{"predicate": "demo_capacity", "value": {"amount": "1", "unit": "demo-unit"}}]
+  },
+  "projection": {
+    "target": "sandbox-page-001",
+    "revision": 1,
+    "properties": {"Status": "SUCCEEDED", "Result Ref": "synthetic://result/demo-job-001"}
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "blockers": [],
+  "boundary": {
+    "notion_access_mode": "READ_ONLY",
+    "notion_reads_performed": false,
+    "notion_real_read": "NOT_VERIFIED",
+    "other_thbison_resources_accessed": false,
+    "real_notion_writes": false
+  },
+  "module": "M2",
+  "node_ids": [
+    "tests.test_integrity::test_r02_source_id_escape",
+    "tests.test_integrity::test_r03_existing_corrupt_blob",
+    "tests.test_integrity::test_r04_manifest_forgery",
+    "tests.test_integrity::test_r05_replay_identity",
+    "tests.test_integrity::test_duplicate_source_id_rejected",
+    "tests.test_integrity::test_backslash_locator_rejected",
+    "tests.test_integrity::test_loads_strict_rejects_nan",
+    "tests.test_store::test_dedupe_same_bytes_two_provenance",
+    "tests.test_store::test_same_basename_different_bytes",
+    "tests.test_store::test_hash_mismatch",
+    "tests.test_store::test_locator_outside_sources_rejected",
+    "tests.test_store::test_crash_before_manifest",
+    "tests.test_store::test_replay_idempotent"
+  ],
+  "python": "3.10.21",
+  "source_sha256": "5571d9bdc23191a4a94eb3420e3881d6dddf947eebf97d69f858bb523d888efe",
+  "stdout_tail": ".............                                                            [100%]",
+  "tests": {
+    "collected": 13,
+    "exit_code": 0,
+    "failed": 0,
+    "passed": 13,
+    "skipped": 0
+  },
+  "verdict": "PASS"
+}

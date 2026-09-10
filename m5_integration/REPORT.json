@@ -1,0 +1,37 @@
+{
+  "blockers": [],
+  "boundary": {
+    "notion_access_mode": "READ_ONLY",
+    "notion_reads_performed": false,
+    "notion_real_read": "NOT_VERIFIED",
+    "other_thbison_resources_accessed": false,
+    "real_notion_writes": false
+  },
+  "module": "M5",
+  "node_ids": [
+    "tests.test_concurrency::test_duplicate_concurrent_admit_one_job",
+    "tests.test_concurrency::test_stale_lease_cannot_finalize",
+    "tests.test_e2e::test_admit_freeze_compute_finalize_project",
+    "tests.test_e2e::test_replay_does_not_create_second_logical_output",
+    "tests.test_offline_gate::test_no_secret_env_required",
+    "tests.test_offline_gate::test_source_scan_no_tokens_or_raw_thbison",
+    "tests.test_probes::test_r01_write_before_validate",
+    "tests.test_probes::test_r12_projection_retry_after_terminal",
+    "tests.test_probes::test_r13_source_in_identity",
+    "tests.test_probes::test_a_slash_b_and_a_dunder_b_do_not_collide",
+    "tests.test_probes::test_concurrent_pipeline_same_and_different_keys",
+    "tests.test_restart_crash::test_restart_reopens_same_ledger",
+    "tests.test_restart_crash::test_crash_before_manifest_leaves_unpublished"
+  ],
+  "python": "3.10.21",
+  "source_sha256": "cc55a7c4282eef135b6bfd62fbee5cdfca98df051780dda27ea7f2758c591769",
+  "stdout_tail": ".............                                                            [100%]",
+  "tests": {
+    "collected": 13,
+    "exit_code": 0,
+    "failed": 0,
+    "passed": 13,
+    "skipped": 0
+  },
+  "verdict": "PASS"
+}

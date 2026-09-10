@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "notice": "Contractor sandbox template. Replace placeholders; never paste THBISON IDs.",
+  "allowed_targets": ["sandbox-page-001"],
+  "token_env": "SANDBOX_NOTION_TOKEN",
+  "mapping_version": 1,
+  "read_only": true
+}

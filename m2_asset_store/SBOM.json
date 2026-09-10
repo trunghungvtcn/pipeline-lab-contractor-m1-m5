@@ -1,0 +1,7 @@
+{
+  "dependencies": [
+    "pytest"
+  ],
+  "module": "m2_asset_store",
+  "python_requires": ">=3.10"
+}

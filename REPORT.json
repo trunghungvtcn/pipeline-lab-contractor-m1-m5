@@ -1,0 +1,220 @@
+{
+  "boundary": {
+    "linux_docker": "NOT_VERIFIED",
+    "notion_access_mode": "READ_ONLY",
+    "notion_reads_performed": false,
+    "notion_real_read": "NOT_VERIFIED",
+    "other_thbison_resources_accessed": false,
+    "real_notion_writes": false
+  },
+  "contractor_modules_verdict": "CONTRACTOR_PASS",
+  "deployed": false,
+  "interpreter": "3.10.21 (main, Sep  1 2026, 00:15:42) [GCC 12.2.0]",
+  "merged": false,
+  "model_training": "NOT_RUN",
+  "modules": [
+    {
+      "blockers": [],
+      "boundary": {
+        "notion_access_mode": "READ_ONLY",
+        "notion_reads_performed": false,
+        "notion_real_read": "NOT_VERIFIED",
+        "other_thbison_resources_accessed": false,
+        "real_notion_writes": false
+      },
+      "module": "M1",
+      "node_ids": [
+        "tests.test_resolver::test_posix_and_windows_same_bytes",
+        "tests.test_resolver::test_same_basename_different_bytes",
+        "tests.test_resolver::test_missing_profile_rejected",
+        "tests.test_resolver::test_rejects_before_read",
+        "tests.test_resolver::test_symlink_escape",
+        "tests.test_resolver::test_symlink_cycle_finite",
+        "tests.test_resolver::test_depth_cap",
+        "tests.test_resolver::test_non_nfc_rejected",
+        "tests.test_resolver::test_case_alias_rejected",
+        "tests.test_resolver::test_canonical_json_sorted_compact",
+        "tests.test_resolver::test_duplicate_json_key_rejected",
+        "tests.test_resolver::test_loads_strict_rejects_nonfinite",
+        "tests.test_resolver::test_expected_hash_mismatch",
+        "tests.test_resolver::test_dot_and_double_sep_rejected",
+        "tests.test_resolver::test_no_read_on_rejected_locator",
+        "tests.test_resolver::test_validate_does_not_touch_fs"
+      ],
+      "python": "3.10.21",
+      "source_sha256": "7191705239f3c4bf9660a3d2b7360c62ff9a29b77afe52d8f3758de1e3bd2201",
+      "stdout_tail": "................                                                         [100%]",
+      "tests": {
+        "collected": 16,
+        "exit_code": 0,
+        "failed": 0,
+        "passed": 16,
+        "skipped": 0
+      },
+      "verdict": "PASS"
+    },
+    {
+      "blockers": [],
+      "boundary": {
+        "notion_access_mode": "READ_ONLY",
+        "notion_reads_performed": false,
+        "notion_real_read": "NOT_VERIFIED",
+        "other_thbison_resources_accessed": false,
+        "real_notion_writes": false
+      },
+      "module": "M2",
+      "node_ids": [
+        "tests.test_integrity::test_r02_source_id_escape",
+        "tests.test_integrity::test_r03_existing_corrupt_blob",
+        "tests.test_integrity::test_r04_manifest_forgery",
+        "tests.test_integrity::test_r05_replay_identity",
+        "tests.test_integrity::test_duplicate_source_id_rejected",
+        "tests.test_integrity::test_backslash_locator_rejected",
+        "tests.test_integrity::test_loads_strict_rejects_nan",
+        "tests.test_store::test_dedupe_same_bytes_two_provenance",
+        "tests.test_store::test_same_basename_different_bytes",
+        "tests.test_store::test_hash_mismatch",
+        "tests.test_store::test_locator_outside_sources_rejected",
+        "tests.test_store::test_crash_before_manifest",
+        "tests.test_store::test_replay_idempotent"
+      ],
+      "python": "3.10.21",
+      "source_sha256": "5571d9bdc23191a4a94eb3420e3881d6dddf947eebf97d69f858bb523d888efe",
+      "stdout_tail": ".............                                                            [100%]",
+      "tests": {
+        "collected": 13,
+        "exit_code": 0,
+        "failed": 0,
+        "passed": 13,
+        "skipped": 0
+      },
+      "verdict": "PASS"
+    },
+    {
+      "blockers": [],
+      "boundary": {
+        "notion_access_mode": "READ_ONLY",
+        "notion_reads_performed": false,
+        "notion_real_read": "NOT_VERIFIED",
+        "other_thbison_resources_accessed": false,
+        "real_notion_writes": false
+      },
+      "module": "M3",
+      "node_ids": [
+        "tests.test_cas::test_r06_cancel_finalize_race",
+        "tests.test_cas::test_r07_negative_and_over_budget",
+        "tests.test_cas::test_r08_crash_reclaim_bounded",
+        "tests.test_cas::test_terminal_replay_same_result_idempotent",
+        "tests.test_cas::test_loads_strict_rejects_nan",
+        "tests.test_ledger::test_duplicate_admit_one_job",
+        "tests.test_ledger::test_digest_conflict",
+        "tests.test_ledger::test_concurrent_admit",
+        "tests.test_ledger::test_two_controllers_one_claim",
+        "tests.test_ledger::test_stale_worker_cannot_finalize",
+        "tests.test_ledger::test_restart_persists_counters",
+        "tests.test_ledger::test_terminal_replay_no_restart",
+        "tests.test_ledger::test_cancel_blocks_late_output",
+        "tests.test_ledger::test_budget_no_race"
+      ],
+      "python": "3.10.21",
+      "source_sha256": "16454a51aae94aa0043c9ab254ca1803b70d2cb584a7a28756bd05a58cb7a6fd",
+      "stdout_tail": "..............                                                           [100%]",
+      "tests": {
+        "collected": 14,
+        "exit_code": 0,
+        "failed": 0,
+        "passed": 14,
+        "skipped": 0
+      },
+      "verdict": "PASS"
+    },
+    {
+      "blockers": [],
+      "boundary": {
+        "notion_access_mode": "READ_ONLY",
+        "notion_reads_performed": false,
+        "notion_real_read": "NOT_VERIFIED",
+        "other_thbison_resources_accessed": false,
+        "real_notion_writes": false
+      },
+      "module": "M4",
+      "node_ids": [
+        "tests.test_gates::test_r09_readonly_blocks_projection_and_unknown",
+        "tests.test_gates::test_r10_same_revision_terminal_rollback",
+        "tests.test_gates::test_r11_untrusted_retry_override",
+        "tests.test_gates::test_r15_unmapped_and_protected_fields",
+        "tests.test_gates::test_same_event_payload_conflict",
+        "tests.test_gates::test_read_ops_unchanged",
+        "tests.test_gates::test_acquire_missing_target",
+        "tests.test_gates::test_acquire_pagination_and_drift",
+        "tests.test_gates::test_redirect_does_not_forward_auth",
+        "tests.test_gates::test_loads_strict_rejects_nan",
+        "tests.test_projection::test_happy_path_projects_status",
+        "tests.test_projection::test_auth_and_scope_before_write",
+        "tests.test_projection::test_duplicate_event_idempotent",
+        "tests.test_projection::test_old_revision_does_not_rollback",
+        "tests.test_projection::test_timeout_retries_without_compute",
+        "tests.test_projection::test_timeout_budget_exhausted",
+        "tests.test_projection::test_terminal_does_not_return_to_ready",
+        "tests.test_projection::test_unknown_mapping_rejected",
+        "tests.test_readonly::test_read_only_blocks_named_mutations_not_query",
+        "tests.test_readonly::test_attachment_redirect_does_not_forward_credential",
+        "tests.test_redaction::test_redact_token_and_signed_url",
+        "tests.test_redaction::test_snapshot_receipt_hashes_redacted_markdown"
+      ],
+      "python": "3.10.21",
+      "source_sha256": "68eff547f3c00a1195de651c971f87e3d2d88dc65296a92c8eac038a79763f75",
+      "stdout_tail": "......................                                                   [100%]",
+      "tests": {
+        "collected": 22,
+        "exit_code": 0,
+        "failed": 0,
+        "passed": 22,
+        "skipped": 0
+      },
+      "verdict": "PASS"
+    },
+    {
+      "blockers": [],
+      "boundary": {
+        "notion_access_mode": "READ_ONLY",
+        "notion_reads_performed": false,
+        "notion_real_read": "NOT_VERIFIED",
+        "other_thbison_resources_accessed": false,
+        "real_notion_writes": false
+      },
+      "module": "M5",
+      "node_ids": [
+        "tests.test_concurrency::test_duplicate_concurrent_admit_one_job",
+        "tests.test_concurrency::test_stale_lease_cannot_finalize",
+        "tests.test_e2e::test_admit_freeze_compute_finalize_project",
+        "tests.test_e2e::test_replay_does_not_create_second_logical_output",
+        "tests.test_offline_gate::test_no_secret_env_required",
+        "tests.test_offline_gate::test_source_scan_no_tokens_or_raw_thbison",
+        "tests.test_probes::test_r01_write_before_validate",
+        "tests.test_probes::test_r12_projection_retry_after_terminal",
+        "tests.test_probes::test_r13_source_in_identity",
+        "tests.test_probes::test_a_slash_b_and_a_dunder_b_do_not_collide",
+        "tests.test_probes::test_concurrent_pipeline_same_and_different_keys",
+        "tests.test_restart_crash::test_restart_reopens_same_ledger",
+        "tests.test_restart_crash::test_crash_before_manifest_leaves_unpublished"
+      ],
+      "python": "3.10.21",
+      "source_sha256": "cc55a7c4282eef135b6bfd62fbee5cdfca98df051780dda27ea7f2758c591769",
+      "stdout_tail": ".............                                                            [100%]",
+      "tests": {
+        "collected": 13,
+        "exit_code": 0,
+        "failed": 0,
+        "passed": 13,
+        "skipped": 0
+      },
+      "verdict": "PASS"
+    }
+  ],
+  "platform": "Linux-6.12.8+-x86_64-with-glibc2.36",
+  "production_ready": false,
+  "run_id": "20260910T045432Z-edcc322f",
+  "scheduler_enabled": false,
+  "verdict": "CONTRACTOR_PASS"
+}

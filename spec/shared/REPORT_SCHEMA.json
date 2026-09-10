@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["module", "verdict", "source_sha256", "tests", "boundary"],
+  "properties": {
+    "module": {"type": "string", "pattern": "^M[1-5]$"},
+    "verdict": {"enum": ["PASS", "PARTIAL", "BOUNDARY_VIOLATION"]},
+    "source_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "tests": {
+      "type": "object",
+      "required": ["collected", "passed", "failed", "skipped", "exit_code"],
+      "properties": {
+        "collected": {"type": "integer", "minimum": 0},
+        "passed": {"type": "integer", "minimum": 0},
+        "failed": {"type": "integer", "minimum": 0},
+        "skipped": {"type": "integer", "minimum": 0},
+        "exit_code": {"type": "integer"}
+      }
+    },
+    "boundary": {
+      "type": "object",
+      "required": ["notion_access_mode", "notion_reads_performed", "real_notion_writes", "other_thbison_resources_accessed"],
+      "properties": {
+        "notion_access_mode": {"const": "READ_ONLY"},
+        "notion_reads_performed": {"type": "boolean"},
+        "real_notion_writes": {"const": false},
+        "other_thbison_resources_accessed": {"const": false}
+      }
+    },
+    "blockers": {"type": "array", "items": {"type": "string"}}
+  },
+  "additionalProperties": true
+}
