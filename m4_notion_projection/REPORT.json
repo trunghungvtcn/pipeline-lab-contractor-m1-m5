@@ -9,6 +9,11 @@
   },
   "module": "M4",
   "node_ids": [
+    "tests.test_g_gates::test_g7_missing_attachment_not_consistent",
+    "tests.test_g_gates::test_g7_empty_file_ok",
+    "tests.test_g_gates::test_g7_hash_and_size_mismatch",
+    "tests.test_g_gates::test_g7_redirect_cross_host",
+    "tests.test_g_gates::test_g8_missing_target_no_search",
     "tests.test_gates::test_r09_readonly_blocks_projection_and_unknown",
     "tests.test_gates::test_r10_same_revision_terminal_rollback",
     "tests.test_gates::test_r11_untrusted_retry_override",
@@ -33,13 +38,13 @@
     "tests.test_redaction::test_snapshot_receipt_hashes_redacted_markdown"
   ],
   "python": "3.10.21",
-  "source_sha256": "68eff547f3c00a1195de651c971f87e3d2d88dc65296a92c8eac038a79763f75",
-  "stdout_tail": "......................                                                   [100%]",
+  "source_sha256": "d2bb20519501d9ad5825bb28b4980ab47350162b706e6b9d89482049b020b351",
+  "stdout_tail": "...........................                                              [100%]",
   "tests": {
-    "collected": 22,
+    "collected": 27,
     "exit_code": 0,
     "failed": 0,
-    "passed": 22,
+    "passed": 27,
     "skipped": 0
   },
   "verdict": "PASS"

@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS reservations (
   reservation_id TEXT PRIMARY KEY,
   job_id TEXT NOT NULL,
   amount INTEGER NOT NULL,
+  operation TEXT NOT NULL DEFAULT 'reserve',
   state TEXT NOT NULL,
   at_ns INTEGER NOT NULL
 );
@@ -56,6 +57,7 @@ ADD_COLUMNS = (
     ("projection_status", "TEXT"),
     ("outbox", "TEXT"),
     ("result_payload", "TEXT"),
+    ("reservation_operation", "TEXT"),
 )
 
 
@@ -79,6 +81,37 @@ class JobLedger:
         self._local = threading.local()
         self._migrate()
 
+    def close(self) -> None:
+        conn = getattr(self._local, "conn", None)
+        if conn is not None:
+            try:
+                conn.close()
+            except sqlite3.Error:
+                pass
+            self._local.conn = None
+
+    def __enter__(self) -> "JobLedger":
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        self.close()
+
+    def _configure(self, conn: sqlite3.Connection) -> None:
+        conn.execute("PRAGMA busy_timeout=30000")
+        last: Exception | None = None
+        for _ in range(80):
+            try:
+                conn.execute("PRAGMA journal_mode=WAL")
+                conn.execute("PRAGMA synchronous=NORMAL")
+                return
+            except sqlite3.OperationalError as exc:
+                last = exc
+                if "locked" in str(exc).lower():
+                    time.sleep(0.02)
+                    continue
+                raise
+        raise last or sqlite3.OperationalError("database is locked")
+
     def _conn(self) -> sqlite3.Connection:
         conn = getattr(self._local, "conn", None)
         if conn is None:
@@ -89,23 +122,51 @@ class JobLedger:
                 check_same_thread=False,
             )
             conn.row_factory = sqlite3.Row
-            conn.execute("PRAGMA journal_mode=WAL")
-            conn.execute("PRAGMA busy_timeout=30000")
-            conn.execute("PRAGMA synchronous=NORMAL")
+            self._configure(conn)
             self._local.conn = conn
         return conn
 
     def _migrate(self) -> None:
-        c = sqlite3.connect(self._db_path, timeout=60)
-        try:
-            c.executescript(SCHEMA)
-            cols = {r[1] for r in c.execute("PRAGMA table_info(jobs)").fetchall()}
-            for name, decl in ADD_COLUMNS:
-                if name not in cols:
-                    c.execute(f"ALTER TABLE jobs ADD COLUMN {name} {decl}")
-            c.commit()
-        finally:
-            c.close()
+        last: Exception | None = None
+        for _ in range(80):
+            c = sqlite3.connect(self._db_path, timeout=60)
+            try:
+                c.execute("PRAGMA busy_timeout=30000")
+                try:
+                    c.execute("PRAGMA journal_mode=WAL")
+                except sqlite3.OperationalError as exc:
+                    if "locked" not in str(exc).lower():
+                        raise
+                    last = exc
+                    time.sleep(0.02)
+                    continue
+                c.executescript(SCHEMA)
+                cols = {r[1] for r in c.execute("PRAGMA table_info(jobs)").fetchall()}
+                for name, decl in ADD_COLUMNS:
+                    if name not in cols:
+                        try:
+                            c.execute(f"ALTER TABLE jobs ADD COLUMN {name} {decl}")
+                        except sqlite3.OperationalError as exc:
+                            if "duplicate column" not in str(exc).lower():
+                                raise
+                rcols = {r[1] for r in c.execute("PRAGMA table_info(reservations)").fetchall()}
+                if "operation" not in rcols:
+                    try:
+                        c.execute("ALTER TABLE reservations ADD COLUMN operation TEXT NOT NULL DEFAULT 'reserve'")
+                    except sqlite3.OperationalError as exc:
+                        if "duplicate column" not in str(exc).lower():
+                            raise
+                c.commit()
+                return
+            except sqlite3.OperationalError as exc:
+                last = exc
+                if "locked" in str(exc).lower():
+                    time.sleep(0.02)
+                    continue
+                raise
+            finally:
+                c.close()
+        raise last or sqlite3.OperationalError("database is locked")
 
     def _begin(self, c: sqlite3.Connection) -> None:
         last: Exception | None = None
@@ -127,9 +188,21 @@ class JobLedger:
             (job_id, kind, payload, self._clock()),
         )
 
-    def admit(self, scope: str, idempotency_key: str, request_digest: str) -> dict[str, Any]:
+    def admit(
+        self,
+        scope: str,
+        idempotency_key: str,
+        request_digest: str,
+        *,
+        deadline_ns: int | None = None,
+        not_before_ns: int | None = None,
+    ) -> dict[str, Any]:
         trace = self._id()
         now = self._clock()
+        if deadline_ns is not None and (not isinstance(deadline_ns, int) or isinstance(deadline_ns, bool)):
+            return envelope(status="error", reason_code="INVALID_DEADLINE", trace_id=trace)
+        if not_before_ns is not None and (not isinstance(not_before_ns, int) or isinstance(not_before_ns, bool)):
+            return envelope(status="error", reason_code="INVALID_NOT_BEFORE", trace_id=trace)
         c = self._conn()
         self._begin(c)
         try:
@@ -156,8 +229,8 @@ class JobLedger:
             job_id = self._id()
             c.execute(
                 "INSERT INTO jobs(job_id, scope, idempotency_key, request_digest, state, created_ns, updated_ns, "
-                "max_transient, max_permanent, dispatch_count, projection_status) "
-                "VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                "max_transient, max_permanent, dispatch_count, projection_status, deadline_ns, not_before_ns) "
+                "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 (
                     job_id,
                     scope,
@@ -170,6 +243,8 @@ class JobLedger:
                     self._max_permanent,
                     0,
                     "NONE",
+                    deadline_ns,
+                    not_before_ns,
                 ),
             )
             self._event(c, job_id, "ADMITTED", request_digest)
@@ -222,6 +297,29 @@ class JobLedger:
             if row["state"] in TERMINAL:
                 c.execute("COMMIT")
                 return envelope(status="error", reason_code="TERMINAL", trace_id=trace, extra={"state": row["state"]})
+            nb = row["not_before_ns"]
+            if nb is not None and now < int(nb):
+                c.execute("COMMIT")
+                return envelope(status="error", reason_code="NOT_BEFORE", trace_id=trace)
+            dl = row["deadline_ns"]
+            if dl is not None and now > int(dl):
+                if int(row["dispatch_count"] or 0) > 0 or row["state"] == "RUNNING":
+                    c.execute(
+                        "UPDATE jobs SET state=?, lease_token=NULL, worker_id=NULL, updated_ns=? "
+                        "WHERE job_id=? AND state NOT IN ('SUCCEEDED','FAILED','CANCELLED','RECONCILE_REQUIRED')",
+                        ("RECONCILE_REQUIRED", now, job_id),
+                    )
+                    self._event(c, job_id, "DEADLINE", "RECONCILE_REQUIRED")
+                    c.execute("COMMIT")
+                    return envelope(status="error", reason_code="RECONCILE_REQUIRED", trace_id=trace)
+                c.execute(
+                    "UPDATE jobs SET state=?, lease_token=NULL, worker_id=NULL, updated_ns=? "
+                    "WHERE job_id=? AND state NOT IN ('SUCCEEDED','FAILED','CANCELLED','RECONCILE_REQUIRED')",
+                    ("FAILED", now, job_id),
+                )
+                self._event(c, job_id, "DEADLINE", "DEADLINE_EXCEEDED")
+                c.execute("COMMIT")
+                return envelope(status="error", reason_code="DEADLINE_EXCEEDED", trace_id=trace)
             if row["lease_until_ns"] and row["lease_until_ns"] > now and row["lease_token"]:
                 c.execute("COMMIT")
                 return envelope(status="error", reason_code="LEASE_HELD", trace_id=trace)
@@ -277,6 +375,8 @@ class JobLedger:
 
     def record_attempt(self, job_id: str, lease_token: str, fence: int, klass: str) -> dict[str, Any]:
         trace = self._id()
+        if klass not in {"transient", "permanent"}:
+            return envelope(status="error", reason_code="INVALID_RETRY_CLASS", trace_id=trace)
         now = self._clock()
         c = self._conn()
         self._begin(c)
@@ -294,6 +394,10 @@ class JobLedger:
             if row["state"] in TERMINAL:
                 c.execute("COMMIT")
                 return envelope(status="error", reason_code="TERMINAL", trace_id=trace)
+            dl = row["deadline_ns"]
+            if dl is not None and now > int(dl):
+                c.execute("COMMIT")
+                return envelope(status="error", reason_code="RECONCILE_REQUIRED", trace_id=trace)
             if klass == "transient":
                 n = int(row["transient_attempts"]) + 1
                 cap = int(row["max_transient"] or self._max_transient)
@@ -476,36 +580,49 @@ class JobLedger:
                 pass
             raise
 
-    def reserve_budget(self, job_id: str, amount: int, reservation_id: str | None = None) -> dict[str, Any]:
+    def reserve_budget(self, job_id: str, amount: int, reservation_id: str | None = None, *, operation: str = "reserve") -> dict[str, Any]:
         trace = self._id()
         if isinstance(amount, bool) or not isinstance(amount, int) or amount <= 0:
             return envelope(status="error", reason_code="INVALID_AMOUNT", trace_id=trace)
+        if operation != "reserve":
+            return envelope(status="error", reason_code="INVALID_OPERATION", trace_id=trace)
         rid = reservation_id or self._id()
         c = self._conn()
         self._begin(c)
         try:
             existing = c.execute("SELECT * FROM reservations WHERE reservation_id=?", (rid,)).fetchone()
             if existing:
+                same = (
+                    existing["job_id"] == job_id
+                    and int(existing["amount"]) == amount
+                    and (existing["operation"] or "reserve") == operation
+                )
                 c.execute("COMMIT")
-                return envelope(status="ok", reason_code="IDEMPOTENT_HIT", trace_id=trace)
+                if same:
+                    return envelope(status="ok", reason_code="IDEMPOTENT_HIT", trace_id=trace)
+                return envelope(status="error", reason_code="RESERVATION_CONFLICT", trace_id=trace)
             row = c.execute("SELECT * FROM jobs WHERE job_id=?", (job_id,)).fetchone()
             if not row:
                 c.execute("COMMIT")
                 return envelope(status="error", reason_code="NOT_FOUND", trace_id=trace)
+            if row["state"] in TERMINAL:
+                c.execute("COMMIT")
+                return envelope(status="error", reason_code="TERMINAL", trace_id=trace)
             if int(row["budget_reserved"]) + amount > int(row["budget_limit"]):
                 c.execute("COMMIT")
                 return envelope(status="error", reason_code="BUDGET_EXCEEDED", trace_id=trace)
             cur = c.execute(
                 "UPDATE jobs SET budget_reserved=budget_reserved+?, updated_ns=? "
-                "WHERE job_id=? AND budget_reserved+? <= budget_limit",
+                "WHERE job_id=? AND budget_reserved+? <= budget_limit "
+                "AND state NOT IN ('SUCCEEDED','FAILED','CANCELLED','RECONCILE_REQUIRED')",
                 (amount, self._clock(), job_id, amount),
             )
             if cur.rowcount != 1:
                 c.execute("ROLLBACK")
                 return envelope(status="error", reason_code="BUDGET_EXCEEDED", trace_id=trace)
             c.execute(
-                "INSERT INTO reservations(reservation_id, job_id, amount, state, at_ns) VALUES (?,?,?,?,?)",
-                (rid, job_id, amount, "reserved", self._clock()),
+                "INSERT INTO reservations(reservation_id, job_id, amount, operation, state, at_ns) VALUES (?,?,?,?,?,?)",
+                (rid, job_id, amount, operation, "reserved", self._clock()),
             )
             c.execute("COMMIT")
             return envelope(status="ok", reason_code="OK", trace_id=trace, extra={"reservation_id": rid})
@@ -514,7 +631,10 @@ class JobLedger:
                 c.execute("ROLLBACK")
             except sqlite3.Error:
                 pass
-            return envelope(status="ok", reason_code="IDEMPOTENT_HIT", trace_id=trace)
+            existing = c.execute("SELECT * FROM reservations WHERE reservation_id=?", (rid,)).fetchone()
+            if existing and existing["job_id"] == job_id and int(existing["amount"]) == amount:
+                return envelope(status="ok", reason_code="IDEMPOTENT_HIT", trace_id=trace)
+            return envelope(status="error", reason_code="RESERVATION_CONFLICT", trace_id=trace)
         except Exception:
             try:
                 c.execute("ROLLBACK")

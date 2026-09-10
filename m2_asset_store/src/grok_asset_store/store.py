@@ -13,6 +13,8 @@ from .canon import dumps_canonical, envelope, loads_strict
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 # Opaque, collision-free on-disk key. Not a path.
 SOURCE_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
+STAGE_TOKEN_RE = re.compile(r"^[0-9a-f]{64}$")
+PROVENANCE_KEYS = ("blob", "locator", "size", "source_id")
 
 
 class Reader(Protocol):
@@ -59,6 +61,39 @@ def _reject_source_id(source_id: str) -> None:
         raise ValueError("source_id")
 
 
+def _read_bytes(path: str) -> bytes:
+    with open(path, "rb") as fh:
+        return fh.read()
+
+
+def _fsync_dir(path: str) -> None:
+    try:
+        fd = os.open(path, os.O_RDONLY)
+    except OSError:
+        return
+    try:
+        os.fsync(fd)
+    except OSError:
+        pass
+    finally:
+        os.close(fd)
+
+
+def contained_under(root: str, path: str) -> bool:
+    """True iff path is inside root after realpath. Unresolved last component allowed."""
+    root_r = os.path.realpath(os.path.abspath(root))
+    abs_path = os.path.abspath(path)
+    parent, name = os.path.split(abs_path)
+    if not name or name in {".", ".."} or "/" in name or "\\" in name or "\x00" in name:
+        return False
+    parent_r = os.path.realpath(parent) if os.path.isdir(parent) else os.path.abspath(parent)
+    candidate = os.path.join(parent_r, name)
+    try:
+        return os.path.commonpath([root_r, candidate]) == root_r
+    except ValueError:
+        return False
+
+
 class AssetStore:
     def __init__(
         self,
@@ -87,10 +122,44 @@ class AssetStore:
             fh.flush()
             os.fsync(fh.fileno())
         os.replace(tmp, path)
+        if parent:
+            _fsync_dir(parent)
+
+    def _exclusive_stage(self, job_root: str) -> str:
+        """Allocate a directory under job_root. Never uses id_gen/trace as a path."""
+        job_root = os.path.abspath(job_root)
+        os.makedirs(job_root, exist_ok=True)
+        for _ in range(16):
+            token = hashlib.sha256(os.urandom(32)).hexdigest()
+            if not STAGE_TOKEN_RE.fullmatch(token):
+                continue
+            stage = os.path.join(job_root, f".stage-{token}")
+            if not contained_under(job_root, stage):
+                raise OSError("stage-escape")
+            try:
+                os.mkdir(stage)
+            except FileExistsError:
+                continue
+            if not contained_under(job_root, os.path.realpath(stage)):
+                os.rmdir(stage)
+                raise OSError("stage-escape")
+            return stage
+        raise OSError("stage-alloc")
+
+    def _safe_rmtree(self, job_root: str, path: str | None) -> None:
+        if not path:
+            return
+        if not contained_under(job_root, path):
+            return
+        real = os.path.realpath(path)
+        if not contained_under(job_root, real):
+            return
+        shutil.rmtree(real, ignore_errors=True)
 
     def freeze(self, job_root: str, sources: list[SourceRef], reader: Reader) -> dict[str, Any]:
         trace = self._id()
         stage: str | None = None
+        job_root = os.path.abspath(job_root)
         try:
             if not sources:
                 return envelope(status="error", reason_code="EMPTY_SOURCES", trace_id=trace)
@@ -108,9 +177,8 @@ class AssetStore:
                     return envelope(status="error", reason_code="INVALID_SOURCE", trace_id=trace)
 
             os.makedirs(job_root, exist_ok=True)
-            stage = os.path.join(job_root, f".stage-{trace}")
             try:
-                os.mkdir(stage)
+                stage = self._exclusive_stage(job_root)
             except FileExistsError:
                 return envelope(status="error", reason_code="STAGE_EXISTS", trace_id=trace)
 
@@ -121,15 +189,18 @@ class AssetStore:
                 data = reader.read(src.locator)
                 digest = hashlib.sha256(data).hexdigest()
                 if digest != src.expected_sha256.lower():
-                    shutil.rmtree(stage, ignore_errors=True)
+                    self._safe_rmtree(job_root, stage)
                     return envelope(status="error", reason_code="HASH_MISMATCH", trace_id=trace)
                 blob_path = os.path.join(stage, "cas", digest[:2], digest)
+                if not contained_under(stage, blob_path):
+                    self._safe_rmtree(job_root, stage)
+                    return envelope(status="error", reason_code="IO_ERROR", trace_id=trace)
                 if digest not in blobs:
                     existing = os.path.join(job_root, "cas", digest[:2], digest)
                     if os.path.isfile(existing):
-                        prev = open(existing, "rb").read()
+                        prev = _read_bytes(existing)
                         if hashlib.sha256(prev).hexdigest() != digest or len(prev) != len(data):
-                            shutil.rmtree(stage, ignore_errors=True)
+                            self._safe_rmtree(job_root, stage)
                             return envelope(status="error", reason_code="CORRUPT_CAS", trace_id=trace)
                     else:
                         self._write(blob_path, data)
@@ -140,10 +211,11 @@ class AssetStore:
                     "size": len(data),
                     "source_id": src.source_id,
                 }
-                self._write(
-                    os.path.join(stage, "provenance", f"{src.source_id}.json"),
-                    dumps_canonical(prov),
-                )
+                prov_path = os.path.join(stage, "provenance", f"{src.source_id}.json")
+                if not contained_under(stage, prov_path):
+                    self._safe_rmtree(job_root, stage)
+                    return envelope(status="error", reason_code="IO_ERROR", trace_id=trace)
+                self._write(prov_path, dumps_canonical(prov))
                 entries.append(
                     {
                         "blob": digest,
@@ -159,18 +231,17 @@ class AssetStore:
                 "schema_version": 1,
                 "sources": sorted(entries, key=lambda e: e["source_id"]),
             }
-            # payload_sha256 hashes identity without self-hash and without operational trace_id.
             payload_sha = hashlib.sha256(dumps_canonical(payload)).hexdigest()
 
             published = os.path.join(job_root, "MANIFEST.json")
             if os.path.isfile(published):
                 existing_ok = self.verify_manifest(job_root)
                 if not existing_ok:
-                    shutil.rmtree(stage, ignore_errors=True)
+                    self._safe_rmtree(job_root, stage)
                     return envelope(status="error", reason_code="CORRUPT_CAS", trace_id=trace)
-                current = loads_strict(open(published, "rb").read())
+                current = loads_strict(_read_bytes(published))
                 if current.get("payload_sha256") == payload_sha:
-                    shutil.rmtree(stage, ignore_errors=True)
+                    self._safe_rmtree(job_root, stage)
                     return envelope(
                         status="ok",
                         reason_code="IDEMPOTENT_HIT",
@@ -178,13 +249,13 @@ class AssetStore:
                         extra={
                             "blob_count": len(current["blobs"]),
                             "job_root": job_root,
-                            "manifest_file_sha256": hashlib.sha256(open(published, "rb").read()).hexdigest(),
+                            "manifest_file_sha256": hashlib.sha256(_read_bytes(published)).hexdigest(),
                             "manifest_sha256": payload_sha,
                             "payload_sha256": payload_sha,
                             "sources": current["sources"],
                         },
                     )
-                shutil.rmtree(stage, ignore_errors=True)
+                self._safe_rmtree(job_root, stage)
                 return envelope(status="error", reason_code="ALREADY_PUBLISHED", trace_id=trace)
 
             on_disk = dict(payload)
@@ -199,28 +270,33 @@ class AssetStore:
                 dst_blob = os.path.join(final_cas, digest[:2], digest)
                 src_blob = os.path.join(stage, "cas", digest[:2], digest)
                 if os.path.isfile(dst_blob):
-                    prev = open(dst_blob, "rb").read()
+                    prev = _read_bytes(dst_blob)
                     if hashlib.sha256(prev).hexdigest() != digest or len(prev) != size:
-                        shutil.rmtree(stage, ignore_errors=True)
+                        self._safe_rmtree(job_root, stage)
                         return envelope(status="error", reason_code="CORRUPT_CAS", trace_id=trace)
                 elif os.path.isfile(src_blob):
                     os.makedirs(os.path.dirname(dst_blob), exist_ok=True)
                     os.replace(src_blob, dst_blob)
-                    wrote = open(dst_blob, "rb").read()
+                    _fsync_dir(os.path.dirname(dst_blob))
+                    wrote = _read_bytes(dst_blob)
                     if hashlib.sha256(wrote).hexdigest() != digest:
                         return envelope(status="error", reason_code="CORRUPT_CAS", trace_id=trace)
 
-            # Provenance first, MANIFEST last — the replace of MANIFEST.json is the publish point.
             new_prov = os.path.join(job_root, f".provenance-{payload_sha}")
+            if not contained_under(job_root, new_prov):
+                self._safe_rmtree(job_root, stage)
+                return envelope(status="error", reason_code="IO_ERROR", trace_id=trace)
             if os.path.exists(new_prov):
-                shutil.rmtree(new_prov)
+                self._safe_rmtree(job_root, new_prov)
             os.rename(os.path.join(stage, "provenance"), new_prov)
             final_prov = os.path.join(job_root, "provenance")
             if os.path.isdir(final_prov):
                 shutil.rmtree(final_prov)
             os.replace(new_prov, final_prov)
+            _fsync_dir(job_root)
             os.replace(os.path.join(stage, "MANIFEST.json"), published)
-            shutil.rmtree(stage, ignore_errors=True)
+            _fsync_dir(job_root)
+            self._safe_rmtree(job_root, stage)
 
             if not self.verify_manifest(job_root):
                 return envelope(status="error", reason_code="VERIFY_FAILED", trace_id=trace)
@@ -239,16 +315,13 @@ class AssetStore:
                 },
             )
         except Crash:
-            if stage:
-                shutil.rmtree(stage, ignore_errors=True)
+            self._safe_rmtree(job_root, stage)
             return envelope(status="error", reason_code="CRASH_INJECTED", trace_id=trace)
         except KeyError:
-            if stage:
-                shutil.rmtree(stage, ignore_errors=True)
+            self._safe_rmtree(job_root, stage)
             return envelope(status="error", reason_code="LOCATOR_REJECTED", trace_id=trace)
         except OSError:
-            if stage:
-                shutil.rmtree(stage, ignore_errors=True)
+            self._safe_rmtree(job_root, stage)
             return envelope(status="error", reason_code="IO_ERROR", trace_id=trace)
 
     @staticmethod
@@ -261,7 +334,7 @@ class AssetStore:
             path = os.path.join(job_root, "MANIFEST.json")
             if not os.path.isfile(path):
                 return False
-            raw = open(path, "rb").read()
+            raw = _read_bytes(path)
             man = loads_strict(raw)
             if not isinstance(man, dict):
                 return False
@@ -270,6 +343,9 @@ class AssetStore:
             blobs = man.get("blobs")
             sources = man.get("sources")
             payload_sha = man.get("payload_sha256")
+            extra_top = set(man.keys()) - {"blobs", "schema_version", "sources", "payload_sha256"}
+            if extra_top:
+                return False
             if not isinstance(blobs, list) or not isinstance(sources, list):
                 return False
             if not isinstance(payload_sha, str) or not SHA256_RE.match(payload_sha):
@@ -286,6 +362,8 @@ class AssetStore:
             for blob in blobs:
                 if not isinstance(blob, dict):
                     return False
+                if set(blob.keys()) != {"sha256", "size"}:
+                    return False
                 digest = blob.get("sha256")
                 size = blob.get("size")
                 if not isinstance(digest, str) or not SHA256_RE.match(digest):
@@ -298,15 +376,18 @@ class AssetStore:
                 p = os.path.join(job_root, "cas", digest[:2], digest)
                 if not os.path.isfile(p):
                     return False
-                data = open(p, "rb").read()
+                data = _read_bytes(p)
                 if hashlib.sha256(data).hexdigest() != digest or len(data) != size:
                     return False
             for src in sources:
                 if not isinstance(src, dict):
                     return False
+                if set(src.keys()) != {"blob", "locator", "sha256", "size", "source_id"}:
+                    return False
                 sid = src.get("source_id")
                 loc = src.get("locator")
-                digest = src.get("sha256") or src.get("blob")
+                digest = src.get("sha256")
+                blob = src.get("blob")
                 size = src.get("size")
                 if not isinstance(sid, str) or not SOURCE_ID_RE.match(sid):
                     return False
@@ -317,15 +398,24 @@ class AssetStore:
                     _reject_locator(str(loc))
                 except ValueError:
                     return False
-                if not isinstance(digest, str) or digest not in seen_digests:
+                if blob != digest or not isinstance(digest, str) or digest not in seen_digests:
                     return False
-                if size != next(b["size"] for b in blobs if b["sha256"] == digest):
+                blob_size = next(b["size"] for b in blobs if b["sha256"] == digest)
+                if size != blob_size:
                     return False
                 prov_path = os.path.join(job_root, "provenance", f"{sid}.json")
                 if not os.path.isfile(prov_path):
                     return False
-                prov = loads_strict(open(prov_path, "rb").read())
-                if prov.get("blob") != digest or prov.get("source_id") != sid:
+                prov = loads_strict(_read_bytes(prov_path))
+                if not isinstance(prov, dict) or tuple(sorted(prov.keys())) != tuple(sorted(PROVENANCE_KEYS)):
+                    return False
+                expected = {
+                    "blob": digest,
+                    "locator": loc,
+                    "size": size,
+                    "source_id": sid,
+                }
+                if dumps_canonical(prov) != dumps_canonical(expected):
                     return False
             return True
         except Exception:

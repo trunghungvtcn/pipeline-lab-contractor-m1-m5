@@ -99,6 +99,11 @@ class FakeTransport:
     def call(self, op: str, target: str, payload: dict[str, Any], token: str) -> dict[str, Any]:
         rec = redact({"at_ns": self._clock(), "op": op, "payload": payload, "target": target})
         self.calls.append(rec)
+
+        if op == "files.download":
+            # Attachment download is a separate transport: never consume the Notion token.
+            return self.download_attachment(payload.get("url", ""), payload.get("headers") or {})
+
         self._auth(token, target)
 
         if self._fail_timeouts > 0:
@@ -111,9 +116,6 @@ class FakeTransport:
                 raise TransportError("WRITE_BLOCKED")
             if op not in MUTATING_OPS:
                 raise TransportError("UNKNOWN_OP")
-
-        if op == "files.download":
-            return self.download_attachment(payload.get("url", ""), payload.get("headers") or {})
 
         if op == "pages.retrieve":
             return self._retrieve_page(target)
@@ -215,6 +217,8 @@ class FakeTransport:
         if has_auth and host not in {"files.notion.example", "localhost"}:
             self.download_forwarded_auth += 1
             raise TransportError("REDIRECT_CREDENTIAL_LEAK")
+        if host and host not in {"files.notion.example", "localhost"}:
+            return {"ok": False, "bytes": 0, "host": host, "sha256": None, "status": "UNSAFE_REDIRECT"}
         data = self.files.get(url)
         if data is None:
             return {"ok": True, "bytes": 0, "host": host, "sha256": None, "status": "MISSING"}

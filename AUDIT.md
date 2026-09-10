@@ -1,46 +1,26 @@
-# Gói audit Pipeline Lab — M1–M5 (sau review độc lập)
+# Gói audit Pipeline Lab — M1–M5 (G1–G12)
 
-Ngày đóng gói: 2026-09-10  
-Verdict synthetic: `CONTRACTOR_PASS` (78/78, 0 skip).  
-`notion_real_read` và `linux_docker`: `NOT_VERIFIED`.  
-Không dùng `PRODUCTION_READY`. PR #1 vẫn draft — chưa merge, chưa deploy.
+Ngày: 2026-09-10  
+Tag cũ giữ nguyên: `v2026.09.10` (`e618646f7cd42d42e7b55aa9cb6e333d524c188b`)  
+Nhánh sửa: `fix/g1-g12-20260910`  
+Verdict: `CONTRACTOR_PARTIAL` — 95/95 synthetic trên Linux sandbox. `linux_docker` và `notion_real_read`: NOT_VERIFIED.
 
-Đây là **source + test + spec + FIXES.md** sau khi sửa F01–F14. Dùng để đọc code và chạy lại pytest. Không phải Knowledge Factory, không phải data sản xuất.
+Không merge Knowledge Factory, không deploy, không VPS.
 
-## Có gì trong ZIP
+## Có gì
 
-| Thư mục / file | Nội dung |
+| File | Nội dung |
 |---|---|
-| `m1_locator/` … `m5_integration/` | Source + test + pyproject 1.1.0 |
-| `spec/` | TASK.md + CONTRACTS.md |
-| `FIXES.md` | Bảng F01–F14, test ID, expected/actual |
-| `pack.py` | Nén ZIP bằng Python `zipfile.ZIP_DEFLATED` |
-| `pack_gzip.py` | Nén `.tar.gz` bằng Python `gzip.GzipFile` (không dùng lệnh `gzip`) |
-| `run_all.py` | Run directory mới, env whitelist, hash không lẫn pycache |
-| `REPORT.md` / `REPORT.json` | Kết quả chạy gói này |
-| `MANIFEST.json` / `SHA256SUMS.txt` | Checksum từng file |
+| `m1_locator/` … `m5_integration/` | Source 1.2.0 + test |
+| `FIXES.md` | Bảng G1–G12 |
+| `SUPPORT.md` | Linux/Python 3.12 only |
+| `requirements.lock` + `vendor/wheels/` | pytest hashed, offline install |
+| `pack.py` / `pack_gzip.py` | zipfile / gzip.GzipFile |
 
-## Không có trong ZIP
-
-- Snapshot Notion thật, `__pycache__`, data THBISON, source Knowledge Factory (PR #1)
-- Token / secret
-- `artifacts/` runtime
-
-## Chạy test
-
-Python 3.10+ và `pytest`:
+## Chạy
 
 ```sh
-python3 -m pip install pytest
 python3 run_all.py
 ```
 
-Kỳ vọng: **78 passed, 0 failed, 0 skipped**, verdict `CONTRACTOR_PASS`.
-
-Linux / Docker: xem `m5_integration/RUNBOOK.md`. Phase test `network_mode: none`.
-
-`loads_strict` reject NaN/Infinity bằng cách **raise** — giống duplicate key.
-
-## Ranh giới giữ nguyên
-
-Không merge, không deploy, không scheduler, không train, không đổi Status / Decision / Reviewer Note.
+Kỳ vọng modules 95 passed, 0 failed, 0 skipped. Overall PARTIAL cho đến khi Docker Linux và Notion target được cấp.

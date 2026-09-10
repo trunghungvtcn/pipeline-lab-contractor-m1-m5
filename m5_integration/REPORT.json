@@ -13,6 +13,8 @@
     "tests.test_concurrency::test_stale_lease_cannot_finalize",
     "tests.test_e2e::test_admit_freeze_compute_finalize_project",
     "tests.test_e2e::test_replay_does_not_create_second_logical_output",
+    "tests.test_g_gates::test_g9_two_jobs_do_not_share_revision",
+    "tests.test_g_gates::test_g10_crash_after_result_resumes_without_recompute",
     "tests.test_offline_gate::test_no_secret_env_required",
     "tests.test_offline_gate::test_source_scan_no_tokens_or_raw_thbison",
     "tests.test_probes::test_r01_write_before_validate",
@@ -24,13 +26,13 @@
     "tests.test_restart_crash::test_crash_before_manifest_leaves_unpublished"
   ],
   "python": "3.10.21",
-  "source_sha256": "cc55a7c4282eef135b6bfd62fbee5cdfca98df051780dda27ea7f2758c591769",
-  "stdout_tail": ".............                                                            [100%]",
+  "source_sha256": "9ef18a9be4073b8d5ebd71eebacd52db05a678fcc7214c26054e80d8823743f5",
+  "stdout_tail": "...............                                                          [100%]",
   "tests": {
-    "collected": 13,
+    "collected": 15,
     "exit_code": 0,
     "failed": 0,
-    "passed": 13,
+    "passed": 15,
     "skipped": 0
   },
   "verdict": "PASS"

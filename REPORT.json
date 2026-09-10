@@ -24,6 +24,8 @@
       },
       "module": "M1",
       "node_ids": [
+        "tests.test_regular_file::test_rejects_directory",
+        "tests.test_regular_file::test_rejects_fifo_when_available",
         "tests.test_resolver::test_posix_and_windows_same_bytes",
         "tests.test_resolver::test_same_basename_different_bytes",
         "tests.test_resolver::test_missing_profile_rejected",
@@ -42,13 +44,13 @@
         "tests.test_resolver::test_validate_does_not_touch_fs"
       ],
       "python": "3.10.21",
-      "source_sha256": "7191705239f3c4bf9660a3d2b7360c62ff9a29b77afe52d8f3758de1e3bd2201",
-      "stdout_tail": "................                                                         [100%]",
+      "source_sha256": "ebd51bb24d50e9d1178543a59a5eb2346803829f8a3f40065ea4b6252f2576c9",
+      "stdout_tail": "..................                                                       [100%]",
       "tests": {
-        "collected": 16,
+        "collected": 18,
         "exit_code": 0,
         "failed": 0,
-        "passed": 16,
+        "passed": 18,
         "skipped": 0
       },
       "verdict": "PASS"
@@ -64,6 +66,10 @@
       },
       "module": "M2",
       "node_ids": [
+        "tests.test_g_gates::test_g1_untrusted_stage_id_stays_in_job_root",
+        "tests.test_g_gates::test_g1_trace_not_used_as_dirname",
+        "tests.test_g_gates::test_g2_provenance_locator_and_size_bound",
+        "tests.test_g_gates::test_g2_provenance_extra_field_rejected",
         "tests.test_integrity::test_r02_source_id_escape",
         "tests.test_integrity::test_r03_existing_corrupt_blob",
         "tests.test_integrity::test_r04_manifest_forgery",
@@ -79,13 +85,13 @@
         "tests.test_store::test_replay_idempotent"
       ],
       "python": "3.10.21",
-      "source_sha256": "5571d9bdc23191a4a94eb3420e3881d6dddf947eebf97d69f858bb523d888efe",
-      "stdout_tail": ".............                                                            [100%]",
+      "source_sha256": "5a13dead2b4060c6d663923c5f92b96afb235dc58f5e3bdf9ff0db3c57cb9d55",
+      "stdout_tail": ".................                                                        [100%]",
       "tests": {
-        "collected": 13,
+        "collected": 17,
         "exit_code": 0,
         "failed": 0,
-        "passed": 13,
+        "passed": 17,
         "skipped": 0
       },
       "verdict": "PASS"
@@ -106,6 +112,10 @@
         "tests.test_cas::test_r08_crash_reclaim_bounded",
         "tests.test_cas::test_terminal_replay_same_result_idempotent",
         "tests.test_cas::test_loads_strict_rejects_nan",
+        "tests.test_g_gates::test_g3_two_processes_one_job",
+        "tests.test_g_gates::test_g4_unknown_retry_class_is_rejected",
+        "tests.test_g_gates::test_g5_reservation_conflict_across_jobs",
+        "tests.test_g_gates::test_g6_deadline_and_not_before",
         "tests.test_ledger::test_duplicate_admit_one_job",
         "tests.test_ledger::test_digest_conflict",
         "tests.test_ledger::test_concurrent_admit",
@@ -117,13 +127,13 @@
         "tests.test_ledger::test_budget_no_race"
       ],
       "python": "3.10.21",
-      "source_sha256": "16454a51aae94aa0043c9ab254ca1803b70d2cb584a7a28756bd05a58cb7a6fd",
-      "stdout_tail": "..............                                                           [100%]",
+      "source_sha256": "c5dbd4da8638ea0b7221843122fa165c42584793847fac78d883bd4cd6c02470",
+      "stdout_tail": "..................                                                       [100%]",
       "tests": {
-        "collected": 14,
+        "collected": 18,
         "exit_code": 0,
         "failed": 0,
-        "passed": 14,
+        "passed": 18,
         "skipped": 0
       },
       "verdict": "PASS"
@@ -139,6 +149,11 @@
       },
       "module": "M4",
       "node_ids": [
+        "tests.test_g_gates::test_g7_missing_attachment_not_consistent",
+        "tests.test_g_gates::test_g7_empty_file_ok",
+        "tests.test_g_gates::test_g7_hash_and_size_mismatch",
+        "tests.test_g_gates::test_g7_redirect_cross_host",
+        "tests.test_g_gates::test_g8_missing_target_no_search",
         "tests.test_gates::test_r09_readonly_blocks_projection_and_unknown",
         "tests.test_gates::test_r10_same_revision_terminal_rollback",
         "tests.test_gates::test_r11_untrusted_retry_override",
@@ -163,13 +178,13 @@
         "tests.test_redaction::test_snapshot_receipt_hashes_redacted_markdown"
       ],
       "python": "3.10.21",
-      "source_sha256": "68eff547f3c00a1195de651c971f87e3d2d88dc65296a92c8eac038a79763f75",
-      "stdout_tail": "......................                                                   [100%]",
+      "source_sha256": "d2bb20519501d9ad5825bb28b4980ab47350162b706e6b9d89482049b020b351",
+      "stdout_tail": "...........................                                              [100%]",
       "tests": {
-        "collected": 22,
+        "collected": 27,
         "exit_code": 0,
         "failed": 0,
-        "passed": 22,
+        "passed": 27,
         "skipped": 0
       },
       "verdict": "PASS"
@@ -189,6 +204,8 @@
         "tests.test_concurrency::test_stale_lease_cannot_finalize",
         "tests.test_e2e::test_admit_freeze_compute_finalize_project",
         "tests.test_e2e::test_replay_does_not_create_second_logical_output",
+        "tests.test_g_gates::test_g9_two_jobs_do_not_share_revision",
+        "tests.test_g_gates::test_g10_crash_after_result_resumes_without_recompute",
         "tests.test_offline_gate::test_no_secret_env_required",
         "tests.test_offline_gate::test_source_scan_no_tokens_or_raw_thbison",
         "tests.test_probes::test_r01_write_before_validate",
@@ -200,13 +217,13 @@
         "tests.test_restart_crash::test_crash_before_manifest_leaves_unpublished"
       ],
       "python": "3.10.21",
-      "source_sha256": "cc55a7c4282eef135b6bfd62fbee5cdfca98df051780dda27ea7f2758c591769",
-      "stdout_tail": ".............                                                            [100%]",
+      "source_sha256": "9ef18a9be4073b8d5ebd71eebacd52db05a678fcc7214c26054e80d8823743f5",
+      "stdout_tail": "...............                                                          [100%]",
       "tests": {
-        "collected": 13,
+        "collected": 15,
         "exit_code": 0,
         "failed": 0,
-        "passed": 13,
+        "passed": 15,
         "skipped": 0
       },
       "verdict": "PASS"
@@ -214,7 +231,7 @@
   ],
   "platform": "Linux-6.12.8+-x86_64-with-glibc2.36",
   "production_ready": false,
-  "run_id": "20260910T045432Z-edcc322f",
+  "run_id": "20260910T065116Z-4b3efa39",
   "scheduler_enabled": false,
-  "verdict": "CONTRACTOR_PASS"
+  "verdict": "CONTRACTOR_PARTIAL"
 }

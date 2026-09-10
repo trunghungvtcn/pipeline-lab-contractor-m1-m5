@@ -1,5 +1,5 @@
 # M3
 
 - verdict: `PASS`
-- tests: 14/14
+- tests: 18/18
 - python: 3.10.21

@@ -115,6 +115,7 @@ def whitelist_env(pythonpath: str) -> dict[str, str]:
     env = {k: v for k, v in os.environ.items() if k in ENV_ALLOW}
     env["PYTHONPATH"] = pythonpath
     env["PYTHONDONTWRITEBYTECODE"] = "1"
+    env["PYTEST_DISABLE_PLUGIN_AUTOLOAD"] = "1"
     return env
 
 
@@ -142,6 +143,10 @@ def run_mod(code: str, mod_dir: Path, run_dir: Path) -> dict:
             f"--junitxml={junit}",
             "-W",
             "error::pytest.PytestUnhandledThreadExceptionWarning",
+            "-W",
+            "error::pytest.PytestUnraisableExceptionWarning",
+            "-W",
+            "error::ResourceWarning",
         ],
         cwd=mod_dir,
         env=env,
@@ -195,8 +200,8 @@ def write_checksums(mod_dir: Path) -> None:
     (mod_dir / "SHA256SUMS.txt").write_text("\n".join(sums) + "\n")
     sbom = {
         "module": mod_dir.name,
-        "python_requires": ">=3.10",
-        "dependencies": ["pytest"],
+        "python_requires": ">=3.12",
+        "dependencies": ["pytest==9.1.1"],
     }
     (mod_dir / "SBOM.json").write_text(json.dumps(sbom, indent=2, sort_keys=True) + "\n")
 
@@ -210,7 +215,13 @@ def main() -> int:
         reports.append(run_mod(code, path, run_dir))
         write_checksums(path)
     modules_pass = all(r["verdict"] == "PASS" for r in reports)
-    overall = "CONTRACTOR_PASS" if modules_pass else "CONTRACTOR_PARTIAL"
+    skipped = sum(int(r["tests"]["skipped"]) for r in reports)
+    failed = sum(int(r["tests"]["failed"]) for r in reports)
+    linux_host = sys.platform.startswith("linux")
+    docker_verified = os.environ.get("LINUX_DOCKER_VERIFIED") == "1"
+    notion_verified = os.environ.get("NOTION_READ_VERIFIED") == "1"
+    gates_ok = modules_pass and skipped == 0 and failed == 0 and linux_host and docker_verified and notion_verified
+    overall = "CONTRACTOR_PASS" if gates_ok else "CONTRACTOR_PARTIAL"
     out = {
         "verdict": overall,
         "contractor_modules_verdict": "CONTRACTOR_PASS" if modules_pass else "CONTRACTOR_PARTIAL",

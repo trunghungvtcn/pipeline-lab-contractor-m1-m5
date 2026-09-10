@@ -1,36 +1,22 @@
-# F01–F14 — bảng sửa gửi reviewer
+# G1–G12 — file sửa, test, expected/actual
 
-Gói này sửa source theo `THBISON-VENDOR-INDEPENDENT-REVIEW-20260910`. Không merge, không deploy, không ghi Notion, không đổi phê duyệt knowledge.
+Tag cũ (không đụng): `v2026.09.10` → `e618646f7cd42d42e7b55aa9cb6e333d524c188b`
 
-`loads_strict('{"x":NaN}')` **raise `ValueError`** (cùng kiểu reject duplicate key). Probe gốc R14 không bọc try/except nên sẽ dừng ở bước parser — đó là reject đúng contract, không phải chấp nhận NaN.
-
-| ID | P | Module | Test regression | Expected | Actual (sau sửa) |
+| ID | File | Test | Expected | Actual (sau sửa) | Evidence |
 |---|---|---|---|---|---|
-| F01 / R01 | P1 | M5 `harness.py` | `test_r01_write_before_validate` | sentinel BEFORE, writes=0 | LOCATOR_REJECTED, sentinel BEFORE |
-| F02 / R02 | P1 | M2 `store.py` | `test_r02_source_id_escape` | không ghi ngoài root | status error, không `escaped.json` |
-| F03 / R03 | P1 | M2 `store.py` | `test_r03_existing_corrupt_blob` | freeze error | CORRUPT_CAS |
-| F03 / R04 | P1 | M2 `store.py` | `test_r04_manifest_forgery` | verify false | False |
-| F04 / R05 | P1 | M2 `store.py` | `test_r05_replay_identity` | cùng payload_sha256 | hai digest trùng |
-| F05 / R06 | P1 | M3 `ledger.py` | `test_r06_cancel_finalize_race` | CANCELLED | CANCELLED, finalize error |
-| F06 / R07 | P1 | M3 `ledger.py` | `test_r07_negative_and_over_budget` | reject âm / 1100 | INVALID_AMOUNT / BUDGET_EXCEEDED |
-| F06 / R08 | P1 | M3 `ledger.py` | `test_r08_crash_reclaim_bounded` | claim hữu hạn | 2 ok, còn lại error |
-| F07 / R09 | P1 | M4 `fake_transport.py` | `test_r09_readonly_blocks_projection_and_unknown` | WRITE_BLOCKED | WRITE_BLOCKED, query vẫn chạy |
-| F08 / R10 | P1 | M4 transport/adapter | `test_r10_same_revision_terminal_rollback` | giữ SUCCEEDED | state SUCCEEDED |
-| F08 / R11 | P1 | M4 `adapter.py` | `test_r11_untrusted_retry_override` | 1 call | 1 call, PROJECTION_TIMEOUT |
-| F08 / R15 | P1 | M4 `adapter.py` | `test_r15_unmapped_and_protected_fields` | không forward Decision | properties `{}` |
-| F09 / R12 | P1 | M5 `harness.py` | `test_r12_projection_retry_after_terminal` | replay project, không recompute | replay ok, page SUCCEEDED, cùng result_digest |
-| F09 / R13 | P1 | M5 identity | `test_r13_source_in_identity` | DIGEST_CONFLICT | DIGEST_CONFLICT |
-| F10 | P1 | M1 `resolver.py` | `test_no_read_on_rejected_locator`, `test_expected_hash_mismatch`, `test_dot_and_double_sep_rejected` | 0 read, HASH_MISMATCH, alias reject | PASS |
-| F11 / R14 | P2 | M1–M4 `canon.py` | `test_loads_strict_rejects_nonfinite` | raise NaN/Inf | raise |
-| F12 | P1 | M5 tests + Linux | `test_e2e` equality thật; `test_concurrent_*` thu exception; `run_linux.sh` gọi `run_all.py`; Dockerfile cài pytest lúc build | không `a==b or a` | đã sửa |
-| F13 | P2 | M4 `snapshot.py` | `test_acquire_*` | raw≠redacted, missing target, drift, không forward auth | PASS |
-| F14 | P2 | `run_all.py` | run dir mới, env whitelist, hash bỏ pycache, không hard-code notion_reads, verdict theo gate | CONTRACTOR_PASS khi 0 fail | PASS trên Linux sandbox Python 3.10 |
+| G1 | `m2_asset_store/src/grok_asset_store/store.py` `_exclusive_stage` | `test_g1_untrusted_stage_id_stays_in_job_root` | write dưới `job_root`; id_gen traversal không thành path | first_write trong `.stage-<sha256>/` | N01 outside=false |
+| G2 | `store.py` `verify_manifest` + `_read_bytes` | `test_g2_provenance_locator_and_size_bound` | locator/size lệch → verify False; không ResourceWarning | verified=false | N02 |
+| G3 | `m3_job_ledger/src/grok_job_ledger/ledger.py` `_migrate`/`_configure`/`close` | `test_g3_two_processes_one_job` | 8 process, 1 job_id, 0 exception | 1 id, OK/IDEMPOTENT_HIT | pytest M3 |
+| G4 | `ledger.py` `record_attempt` | `test_g4_unknown_retry_class_is_rejected` | `INVALID_RETRY_CLASS`, state RUNNING | reason=INVALID_RETRY_CLASS | N03 |
+| G5 | `ledger.py` `reserve_budget` | `test_g5_reservation_conflict_across_jobs` | `RESERVATION_CONFLICT`, job2 reserved=0 | RESERVATION_CONFLICT / 0 | N04 |
+| G6 | `ledger.py` `admit`/`claim` | `test_g6_deadline_and_not_before` | persist + enforce; deadline sau dispatch → RECONCILE_REQUIRED | cột bền sau reopen | pytest |
+| G7 | `snapshot.py` `acquire_snapshot` | `test_g7_missing_attachment_not_consistent` | MISSING → NOT_VERIFIED | custody=NOT_VERIFIED | N05 |
+| G8 | `snapshot.py` flags/knowledge_content_read | cùng test G7 | mode input; knowledge_content_read=true sau retrieve | True + SYNTHETIC_TEST | N06 |
+| G9 | `harness.py` `_next_revision` | `test_g9_two_jobs_do_not_share_revision` | hai job ok, 2 event | ok/ok | N07 |
+| G10 | `harness.py` artifact_bytes + crash_at | `test_g10_crash_after_result_resumes_without_recompute` | resume cùng digest, compute=0 | ok, compute_calls=0 | pytest |
+| G11 | `resolver.py` fstat regular-file trước open | `test_rejects_directory` `test_rejects_fifo_when_available` | reject dir/FIFO; Linux host | LOCATOR_REJECTED | SUPPORT.md |
+| G12 | `pyproject.toml` `requirements.lock` `Dockerfile` `run_all.py` | run_all + lock hashes | Python 3.12, warning=error, wheels hashed | lock 8 wheels | vendor/wheels |
 
-## Việc chưa chứng minh trong đợt này (NOT_VERIFIED)
+Regression cũ giữ: NaN JSON, M4 read-only `projection.apply`, mapping allowlist, M3 finalize CAS, M5 source identity.
 
-- Docker `network_mode: none` trên host reviewer — image đã khai báo, chưa chạy container ở đây.
-- Race symlink ancestor/root trên kernel barrier riêng ngoài openat+O_NOFOLLOW.
-- Đọc Notion thật: `notion_real_read=NOT_VERIFIED`. Không dò workspace, không ghi Status/Decision.
-- Power-loss từng byte tại finalize M2: crash injection trước MANIFEST vẫn unpublished; kill OS không tái hiện.
-
-Không tuyên bố production-ready.
+Verdict gói này: **CONTRACTOR_PARTIAL** — synthetic modules xanh trên Linux sandbox; `linux_docker` và `notion_real_read` vẫn NOT_VERIFIED (không có target Notion, Docker digest chưa attest trên host reviewer).

@@ -14,6 +14,10 @@
     "tests.test_cas::test_r08_crash_reclaim_bounded",
     "tests.test_cas::test_terminal_replay_same_result_idempotent",
     "tests.test_cas::test_loads_strict_rejects_nan",
+    "tests.test_g_gates::test_g3_two_processes_one_job",
+    "tests.test_g_gates::test_g4_unknown_retry_class_is_rejected",
+    "tests.test_g_gates::test_g5_reservation_conflict_across_jobs",
+    "tests.test_g_gates::test_g6_deadline_and_not_before",
     "tests.test_ledger::test_duplicate_admit_one_job",
     "tests.test_ledger::test_digest_conflict",
     "tests.test_ledger::test_concurrent_admit",
@@ -25,13 +29,13 @@
     "tests.test_ledger::test_budget_no_race"
   ],
   "python": "3.10.21",
-  "source_sha256": "16454a51aae94aa0043c9ab254ca1803b70d2cb584a7a28756bd05a58cb7a6fd",
-  "stdout_tail": "..............                                                           [100%]",
+  "source_sha256": "c5dbd4da8638ea0b7221843122fa165c42584793847fac78d883bd4cd6c02470",
+  "stdout_tail": "..................                                                       [100%]",
   "tests": {
-    "collected": 14,
+    "collected": 18,
     "exit_code": 0,
     "failed": 0,
-    "passed": 14,
+    "passed": 18,
     "skipped": 0
   },
   "verdict": "PASS"

@@ -1,7 +1,7 @@
 {
   "dependencies": [
-    "pytest"
+    "pytest==9.1.1"
   ],
   "module": "m5_integration",
-  "python_requires": ">=3.10"
+  "python_requires": ">=3.12"
 }

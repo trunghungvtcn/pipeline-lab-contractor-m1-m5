@@ -9,6 +9,10 @@
   },
   "module": "M2",
   "node_ids": [
+    "tests.test_g_gates::test_g1_untrusted_stage_id_stays_in_job_root",
+    "tests.test_g_gates::test_g1_trace_not_used_as_dirname",
+    "tests.test_g_gates::test_g2_provenance_locator_and_size_bound",
+    "tests.test_g_gates::test_g2_provenance_extra_field_rejected",
     "tests.test_integrity::test_r02_source_id_escape",
     "tests.test_integrity::test_r03_existing_corrupt_blob",
     "tests.test_integrity::test_r04_manifest_forgery",
@@ -24,13 +28,13 @@
     "tests.test_store::test_replay_idempotent"
   ],
   "python": "3.10.21",
-  "source_sha256": "5571d9bdc23191a4a94eb3420e3881d6dddf947eebf97d69f858bb523d888efe",
-  "stdout_tail": ".............                                                            [100%]",
+  "source_sha256": "5a13dead2b4060c6d663923c5f92b96afb235dc58f5e3bdf9ff0db3c57cb9d55",
+  "stdout_tail": ".................                                                        [100%]",
   "tests": {
-    "collected": 13,
+    "collected": 17,
     "exit_code": 0,
     "failed": 0,
-    "passed": 13,
+    "passed": 17,
     "skipped": 0
   },
   "verdict": "PASS"

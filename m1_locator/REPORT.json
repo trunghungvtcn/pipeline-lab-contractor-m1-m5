@@ -9,6 +9,8 @@
   },
   "module": "M1",
   "node_ids": [
+    "tests.test_regular_file::test_rejects_directory",
+    "tests.test_regular_file::test_rejects_fifo_when_available",
     "tests.test_resolver::test_posix_and_windows_same_bytes",
     "tests.test_resolver::test_same_basename_different_bytes",
     "tests.test_resolver::test_missing_profile_rejected",
@@ -27,13 +29,13 @@
     "tests.test_resolver::test_validate_does_not_touch_fs"
   ],
   "python": "3.10.21",
-  "source_sha256": "7191705239f3c4bf9660a3d2b7360c62ff9a29b77afe52d8f3758de1e3bd2201",
-  "stdout_tail": "................                                                         [100%]",
+  "source_sha256": "ebd51bb24d50e9d1178543a59a5eb2346803829f8a3f40065ea4b6252f2576c9",
+  "stdout_tail": "..................                                                       [100%]",
   "tests": {
-    "collected": 16,
+    "collected": 18,
     "exit_code": 0,
     "failed": 0,
-    "passed": 16,
+    "passed": 18,
     "skipped": 0
   },
   "verdict": "PASS"

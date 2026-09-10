@@ -1,39 +1,30 @@
-# M5 Linux acceptance runbook
+# Linux offline acceptance
 
-## Scope
-Synthetic integration only. No THBISON VPS, no production Notion writes, no merge, no deploy.
+Execution host: Linux, Python 3.12. Windows host is not supported.
 
-## Dependency acquisition (may use network)
-Build the image or install pytest + the five packages from this tree:
+## 1. Acquire wheels (network allowed)
 
-```sh
-pip install pytest
-```
-
-## Offline test (no network, no credentials)
-
-From the package root (parent of `m5_integration/`):
+Wheels already live in `vendor/wheels` with hashes in `requirements.lock`.
+To refresh:
 
 ```sh
-python3 run_all.py
+pip download pytest==9.1.1 -d vendor/wheels --only-binary=:all:
 ```
 
-or:
-
-```sh
-sh m5_integration/scripts/run_linux.sh
-```
-
-Compose (build may use network; the `accept` service has `network_mode: none`):
+## 2. Runtime tests (network disabled)
 
 ```sh
 docker compose -f m5_integration/docker-compose.yml build
 docker compose -f m5_integration/docker-compose.yml run --rm --no-deps accept
 ```
 
-## Rollback
-Delete the sandbox working directory. SQLite and CAS live under that directory; nothing is published.
+`network_mode: none` on the test container. Env is an allowlist without credentials.
 
-## Verdict language
-`CONTRACTOR_PASS` or `CONTRACTOR_PARTIAL`. Never `PRODUCTION_READY`.
-`notion_real_read` and `linux_docker` stay `NOT_VERIFIED` unless those gates actually ran.
+Without Docker, from a Linux Python 3.12 venv:
+
+```sh
+pip install --require-hashes --find-links vendor/wheels -r requirements.lock
+python3 run_all.py
+```
+
+Expected: 0 failed, 0 skipped, 0 deselected, unhandled-thread and ResourceWarning are errors.

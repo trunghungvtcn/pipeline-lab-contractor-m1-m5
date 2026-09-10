@@ -40,6 +40,7 @@ class SnapshotReceipt:
     child_databases_listed: list[str] = field(default_factory=list)
     child_databases_queried: bool = False
     knowledge_content_read: bool = False
+    notion_reads_performed: int = 0
     block_ids: list[str] = field(default_factory=list)
     file_ids: list[str] = field(default_factory=list)
     revision: int = 0
@@ -91,6 +92,10 @@ def dumps_receipt(receipt: SnapshotReceipt) -> bytes:
     return dumps_canonical(receipt.to_dict())
 
 
+PROVENANCE_MODES = frozenset({"SYNTHETIC_TEST", "NOTION_READ_VERIFIED", "SNAPSHOT_OFFLINE_TEST"})
+ATTACHMENT_OK = frozenset({"DOWNLOADED", "VERIFIED", "EMPTY_OK"})
+
+
 def acquire_snapshot(
     transport: ReadTransport,
     *,
@@ -99,8 +104,11 @@ def acquire_snapshot(
     allowlist: set[str],
     fetched_at_utc: str,
     title: str = "sandbox",
+    provenance_mode: str = "SYNTHETIC_TEST",
 ) -> dict[str, Any]:
     """Read-only acquisition. Missing target → NOTION_TARGET_MISSING, no workspace scan."""
+    mode = provenance_mode if provenance_mode in PROVENANCE_MODES else "SYNTHETIC_TEST"
+    reads = 0
     if not target or target not in allowlist:
         rec = build_receipt(
             page_id=target or "",
@@ -108,61 +116,106 @@ def acquire_snapshot(
             fetched_at_utc=fetched_at_utc,
             last_edited_time="",
             markdown="",
-            flags=["NOTION_TARGET_MISSING"],
+            flags=["NOTION_TARGET_MISSING", mode],
             custody="NOTION_TARGET_MISSING",
         )
+        rec.notion_reads_performed = 0
+        rec.knowledge_content_read = False
         return envelope(
             status="error",
             reason_code="NOTION_TARGET_MISSING",
             extra={"custody": rec.custody, "receipt": rec.to_dict()},
         )
     page = transport.call("pages.retrieve", target, {}, token)
+    reads += 1
     revision_1 = int(page.get("revision") or 0)
     edited_1 = page.get("last_edited_time") or ""
     raw_md = page.get("markdown") or ""
+    knowledge_read = isinstance(raw_md, str)
     blocks: list[dict[str, Any]] = []
     cursor: str | None = "0"
     while cursor is not None:
         chunk = transport.call("blocks.retrieve", target, {"start_cursor": cursor}, token)
+        reads += 1
         blocks.extend(chunk.get("blocks") or [])
         cursor = chunk.get("next_cursor")
         if not chunk.get("has_more"):
             break
     attachments: list[AttachmentMeta] = []
+    blockers: list[str] = []
     for block in blocks:
         if block.get("type") != "file":
             continue
         url = block.get("url") or ""
         headers = {"Range": "bytes=0-"}
-        # Never forward Authorization on a cross-host download.
-        dl = transport.call("files.download", target, {"url": url, "headers": headers}, token)
+        try:
+            if hasattr(transport, "download_attachment"):
+                dl = transport.download_attachment(url, headers)
+            else:
+                dl = transport.call("files.download", target, {"url": url, "headers": headers}, "")
+        except Exception as exc:
+            reason = getattr(exc, "reason_code", "DOWNLOAD_ERROR")
+            blockers.append(str(reason))
+            attachments.append(
+                AttachmentMeta(
+                    attachment_id=str(block.get("id") or f"block-{len(attachments)}"),
+                    block_id=block.get("id") or "",
+                    filename=block.get("filename") or "file.bin",
+                    reported_bytes=int(block.get("bytes") or 0),
+                    reported_sha256=block.get("sha256") or "",
+                    status=str(reason),
+                )
+            )
+            continue
         reported = block.get("sha256") or ""
+        reported_bytes = int(block.get("bytes") or 0)
         actual = dl.get("sha256")
-        status = "DOWNLOADED" if actual else "MISSING"
-        if reported and actual and reported != actual:
-            status = "CORRUPT"
+        actual_bytes = dl.get("bytes")
+        dl_status = dl.get("status") or ("DOWNLOADED" if actual else "MISSING")
+        status = dl_status
+        if dl_status == "UNSAFE_REDIRECT":
+            status = "UNSAFE_REDIRECT"
+            blockers.append("UNSAFE_REDIRECT")
+        elif actual is None or dl_status == "MISSING":
+            status = "MISSING"
+            blockers.append("ATTACHMENT_MISSING")
+        else:
+            if reported and actual and reported != actual:
+                status = "HASH_MISMATCH"
+                blockers.append("ATTACHMENT_HASH_MISMATCH")
+            elif reported_bytes and actual_bytes is not None and int(actual_bytes) != reported_bytes:
+                status = "SIZE_MISMATCH"
+                blockers.append("ATTACHMENT_SIZE_MISMATCH")
+            elif int(actual_bytes or 0) == 0 and (not reported or actual == hashlib.sha256(b"").hexdigest()):
+                status = "EMPTY_OK"
+            else:
+                status = "VERIFIED"
         attachments.append(
             AttachmentMeta(
-                attachment_id=block.get("id") or url,
+                attachment_id=str(block.get("id") or f"block-{len(attachments)}"),
                 block_id=block.get("id") or "",
                 filename=block.get("filename") or "file.bin",
-                reported_bytes=int(block.get("bytes") or 0),
+                reported_bytes=reported_bytes,
                 reported_sha256=reported,
                 status=status,
                 actual_sha256=actual,
-                actual_bytes=dl.get("bytes"),
+                actual_bytes=actual_bytes,
             )
         )
     page2 = transport.call("pages.retrieve", target, {}, token)
+    reads += 1
     revision_2 = int(page2.get("revision") or 0)
-    flags: list[str] = ["SYNTHETIC_TEST"]
+    flags: list[str] = [mode]
     custody = "SNAPSHOT_CONSISTENT"
+    if any(a.status not in ATTACHMENT_OK for a in attachments):
+        custody = "NOT_VERIFIED"
     if revision_1 != revision_2 or (page2.get("last_edited_time") or "") != edited_1:
         flags.append("SNAPSHOT_DRIFT")
-        custody = "SNAPSHOT_DRIFT"
-    if any(a.status == "CORRUPT" for a in attachments):
-        flags.append("ATTACHMENT_CORRUPT")
-        custody = "NOT_VERIFIED"
+        if custody == "SNAPSHOT_CONSISTENT":
+            custody = "SNAPSHOT_DRIFT"
+        blockers.append("SNAPSHOT_DRIFT")
+    if blockers:
+        flags.extend(sorted(set(blockers)))
     rec = SnapshotReceipt(
         page_id=target,
         title=title,
@@ -178,7 +231,8 @@ def acquire_snapshot(
         file_ids=[a.attachment_id for a in attachments],
         revision=revision_1,
         child_databases_queried=False,
-        knowledge_content_read=False,
+        knowledge_content_read=knowledge_read,
+        notion_reads_performed=reads,
     )
     reason = "OK" if custody == "SNAPSHOT_CONSISTENT" else custody
     status = "ok" if custody == "SNAPSHOT_CONSISTENT" else "error"

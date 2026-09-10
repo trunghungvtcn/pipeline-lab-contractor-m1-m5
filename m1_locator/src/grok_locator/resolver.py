@@ -27,6 +27,7 @@ WIN_DEVICES = {
 
 CONTROL_RE = re.compile(r"[\x00-\x1f\x7f]")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+MAX_READ_BYTES = 32 * 1024 * 1024
 
 
 class LocatorError(Exception):
@@ -86,13 +87,22 @@ class DefaultFS:
     def lstat_at(self, name: str, dir_fd: int) -> os.stat_result:
         return os.lstat(name, dir_fd=dir_fd)
 
-    def read_fd(self, fd: int) -> bytes:
+    def read_fd(self, fd: int, max_bytes: int = MAX_READ_BYTES) -> bytes:
+        st = os.fstat(fd)
+        if not stat.S_ISREG(st.st_mode):
+            raise LocatorError("LOCATOR_REJECTED", "not-regular-file")
+        if st.st_size > max_bytes:
+            raise LocatorError("LOCATOR_REJECTED", "too-large")
         self.read_count += 1
         parts: list[bytes] = []
+        total = 0
         while True:
             chunk = os.read(fd, 1024 * 64)
             if not chunk:
                 break
+            total += len(chunk)
+            if total > max_bytes:
+                raise LocatorError("LOCATOR_REJECTED", "too-large")
             parts.append(chunk)
         return b"".join(parts)
 
@@ -260,6 +270,8 @@ class LocatorResolver:
                     raise LocatorError("LOCATOR_REJECTED", "lstat") from exc
                 if stat.S_ISLNK(st.st_mode):
                     raise LocatorError("SYMLINK_ESCAPE", "symlink-component")
+                if last and not stat.S_ISREG(st.st_mode):
+                    raise LocatorError("LOCATOR_REJECTED", "not-regular-file")
                 ident = (st.st_dev, st.st_ino)
                 if ident in seen_inodes:
                     raise LocatorError("LOCATOR_REJECTED", "graph-cycle")
@@ -267,6 +279,13 @@ class LocatorResolver:
                 nxt = self._fs.openat(seg, dir_fd=cursor, directory=not last and stat.S_ISDIR(st.st_mode))
                 held.append(nxt)
                 cursor = nxt
+                if last:
+                    try:
+                        fst = os.fstat(cursor)
+                    except OSError as exc:
+                        raise LocatorError("LOCATOR_REJECTED", "fstat") from exc
+                    if not stat.S_ISREG(fst.st_mode):
+                        raise LocatorError("LOCATOR_REJECTED", "not-regular-file")
 
             data = self._fs.read_fd(cursor)
             digest = hashlib.sha256(data).hexdigest()
