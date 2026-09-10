@@ -38,7 +38,7 @@
     "tests.test_redaction::test_snapshot_receipt_hashes_redacted_markdown"
   ],
   "python": "3.10.21",
-  "source_sha256": "d2bb20519501d9ad5825bb28b4980ab47350162b706e6b9d89482049b020b351",
+  "source_sha256": "692c06b3e3d0ed8f3eeaf7a563088a9f5aa08cd221481fef19dd4de3d6febd89",
   "stdout_tail": "...........................                                              [100%]",
   "tests": {
     "collected": 27,

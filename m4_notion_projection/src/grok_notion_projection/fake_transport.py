@@ -143,6 +143,7 @@ class FakeTransport:
             "last_edited_time": page.last_edited,
             "properties": dict(page.properties),
             "markdown": page.raw_markdown,
+            "state": page.state,
         }
 
     def _retrieve_blocks(self, target: str, payload: dict[str, Any]) -> dict[str, Any]:

@@ -1,30 +1,25 @@
 # Linux offline acceptance
 
-Execution host: Linux, Python 3.12. Windows host is not supported.
+Base image (linux/amd64):
 
-## 1. Acquire wheels (network allowed)
+`python:3.12.10-slim-bookworm@sha256:97983fa8cc88343512862c62307159a82261c3528dc025f79e5a3f7af43e50b4`
 
-Wheels already live in `vendor/wheels` with hashes in `requirements.lock`.
-To refresh:
+## Acquire (network allowed)
+
+Wheels live in `vendor/wheels` with hashes in `requirements.lock`.
+
+## Build and test (test step has no network)
 
 ```sh
-pip download pytest==9.1.1 -d vendor/wheels --only-binary=:all:
+docker build -f m5_integration/Dockerfile -t contractor-accept:candidate .
+docker run --rm --network=none --env PYTHONDONTWRITEBYTECODE=1 --env PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 contractor-accept:candidate
 ```
 
-## 2. Runtime tests (network disabled)
+Or GitHub Actions workflow `.github/workflows/linux-offline.yml`.
+
+Without Docker, Linux Python 3.12:
 
 ```sh
-docker compose -f m5_integration/docker-compose.yml build
-docker compose -f m5_integration/docker-compose.yml run --rm --no-deps accept
-```
-
-`network_mode: none` on the test container. Env is an allowlist without credentials.
-
-Without Docker, from a Linux Python 3.12 venv:
-
-```sh
-pip install --require-hashes --find-links vendor/wheels -r requirements.lock
+python3 -m pip install --no-index --require-hashes --find-links vendor/wheels -r requirements.lock
 python3 run_all.py
 ```
-
-Expected: 0 failed, 0 skipped, 0 deselected, unhandled-thread and ResourceWarning are errors.

@@ -1,0 +1,61 @@
+name: linux-offline
+
+on:
+  push:
+    branches: ["**"]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  pytest-python312:
+    name: Linux Python 3.12 offline pytest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install hashed wheels (acquisition)
+        run: python -m pip install --no-index --require-hashes --find-links vendor/wheels -r requirements.lock
+      - name: Run M1–M5 offline
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
+        run: python run_all.py
+      - name: Record host evidence
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, os, platform, sys, hashlib, pathlib
+          print("python", sys.version)
+          print("platform", platform.platform())
+          print("kernel", os.uname().release)
+          print("commit", os.environ.get("GITHUB_SHA"))
+          root = pathlib.Path("vendor/wheels")
+          for p in sorted(root.glob("*.whl")):
+              h = hashlib.sha256(p.read_bytes()).hexdigest()
+              print(f"wheel {p.name} {h}")
+          PY
+          uname -a
+      - name: Upload JUnit and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-junit
+          path: |
+            artifacts/**
+            **/REPORT.json
+            **/junit.xml
+
+  docker-network-none:
+    name: Pinned image, network-none tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build from pinned digest
+        run: docker build -f m5_integration/Dockerfile -t contractor-accept:candidate .
+      - name: Image digest
+        run: docker image inspect contractor-accept:candidate --format '{{json .RepoDigests}} {{.Id}}'
+      - name: Run tests with network disabled
+        run: docker run --rm --network=none --env PYTHONDONTWRITEBYTECODE=1 --env PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 contractor-accept:candidate

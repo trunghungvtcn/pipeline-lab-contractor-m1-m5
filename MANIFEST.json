@@ -1,14 +1,19 @@
 {
   "entries": [
     {
-      "bytes": 863,
-      "path": "AUDIT.md",
-      "sha256": "8f98b17f086a2e2384d1e8469f1be22aa3bad8ddfae55a6d109efb830baff03c"
+      "bytes": 2055,
+      "path": ".github/workflows/linux-offline.yml",
+      "sha256": "df097e647e81367c08faee7cfb03026cd64a7a5ee5e87f773f9b646653f4b52f"
     },
     {
-      "bytes": 2628,
+      "bytes": 431,
+      "path": "AUDIT.md",
+      "sha256": "0d72d83b8a6595dc02bf2773edfecbbc9f63eb0156c4c8cd35216a76e046558e"
+    },
+    {
+      "bytes": 1337,
       "path": "FIXES.md",
-      "sha256": "48e39ded0d499ae7d54ec3058da723365645c41f2d091795a12e29f9a5237e07"
+      "sha256": "19ed734ac578c7514e6c1c038e8ae55dd8e50ae29d59710a5752dccbc7bc1af1"
     },
     {
       "bytes": 1297,
@@ -16,9 +21,14 @@
       "sha256": "91054fc18860f51a62b6c7e36caf7f3fb78b56d048b10752ebd59f3a9798b526"
     },
     {
-      "bytes": 10377,
+      "bytes": 504,
+      "path": "README.md",
+      "sha256": "377954eb647bae6253beb644dba6defdc1e13b73e401bad2753175dbf9abdb7c"
+    },
+    {
+      "bytes": 10896,
       "path": "REPORT.json",
-      "sha256": "facd4762d19497fecbc518ea1b2e108b6c505a3adefbfef82fa9368fcfa9c8b6"
+      "sha256": "1d4bfc49c4e11debb037e372e88f5bb2e7b50533ae145c94c5179aa2c9286c10"
     },
     {
       "bytes": 499,
@@ -208,7 +218,7 @@
     {
       "bytes": 2309,
       "path": "m4_notion_projection/REPORT.json",
-      "sha256": "478b4f823d9c50dd91204d81a44b476e587b0e73a91c0e6eb75e40a4951e1c88"
+      "sha256": "46fc39818b491075fd198207b1110a1a5a10bde7262cd76b90d8b7b2e3f2c49d"
     },
     {
       "bytes": 57,
@@ -223,7 +233,7 @@
     {
       "bytes": 1350,
       "path": "m4_notion_projection/SHA256SUMS.txt",
-      "sha256": "b9d6d5d71bec7e85db9ed9e9b2885d8824163fc9da3367af676f1e3a02c90275"
+      "sha256": "8e0457ed22a9fc66fa6c53e98c4435d33671cb1fff8a225bc80aa6bad255ca73"
     },
     {
       "bytes": 1489,
@@ -256,9 +266,9 @@
       "sha256": "a26e69260578965912547683d0516fb01860c3d733048005ace3a73c157ea77e"
     },
     {
-      "bytes": 8622,
+      "bytes": 8655,
       "path": "m4_notion_projection/src/grok_notion_projection/fake_transport.py",
-      "sha256": "e92cf7f654530fa37bf1ef2af10884b2ef2a3327cf2469e82c462e68915b16e9"
+      "sha256": "870fc4413c39adc4e495e203afb6f77f73fff48a8d4de791adaa2b920e7054c4"
     },
     {
       "bytes": 431,
@@ -301,24 +311,24 @@
       "sha256": "7b6f8145a08f2dfd4e601691ac8e9742c07922e3c84add4cd7055b7a36c9fc6f"
     },
     {
-      "bytes": 1112,
+      "bytes": 1081,
       "path": "m5_integration/Dockerfile",
-      "sha256": "4be5c6b52e1b57d7a969d996fcf246dc3bd96c276a9ce2d5ab70126faa3f3afa"
+      "sha256": "c8e3c8e06df017635106443dc4817d13d1ad072a753ea2735d7a1ee58c65f253"
     },
     {
-      "bytes": 1641,
+      "bytes": 2136,
       "path": "m5_integration/REPORT.json",
-      "sha256": "07ff95db280e4634b3d4d1dfaa42bf571c453691e45e6ab6324b1621d4a70d99"
+      "sha256": "ff222724b6aa98f9cf7db0f4ce64f29c8bb493ba9855dd0f93d4db52e1487e9d"
     },
     {
       "bytes": 57,
       "path": "m5_integration/REPORT.md",
-      "sha256": "dd35191fc5417e52113d132b958f64f7e32dea4c305fc0a3675e424deda8976b"
+      "sha256": "1288a326f596afb2452079717fe9bf92208105737ac23620b41d201a0e933d5d"
     },
     {
-      "bytes": 821,
+      "bytes": 750,
       "path": "m5_integration/RUNBOOK.md",
-      "sha256": "9ef2913d80adc8db140fdc7c1cb26dd5d8074d4b764edbe6bef721940411ce8f"
+      "sha256": "e8ee92271c0041ea3ac6937d2773c9bb7d11238a75c8942b879a8cbee746a769"
     },
     {
       "bytes": 109,
@@ -326,9 +336,9 @@
       "sha256": "87dc38f1f16238366ff51507b5785b081276308a29acb05d0befbe8c26680f7c"
     },
     {
-      "bytes": 1159,
+      "bytes": 1353,
       "path": "m5_integration/SHA256SUMS.txt",
-      "sha256": "ea6b968e24956e9f5bf7db0706d4c7f3201258d7a4642da9bc29325bbc91b702"
+      "sha256": "c9cc0b64cdf20ca29281f21031a28f8db2903c5d9f2a484f543c89e01086d54c"
     },
     {
       "bytes": 190,
@@ -351,9 +361,9 @@
       "sha256": "f3daffce4e29b43ef1564ff79f650c5bf7506793fceb995842118d01c51afcce"
     },
     {
-      "bytes": 108,
+      "bytes": 154,
       "path": "m5_integration/src/grok_pipeline/__init__.py",
-      "sha256": "427733a78b5d3c67589c162c5bd063f4ac7f85163417fa67d9864e965be0a5b9"
+      "sha256": "067218e18d2f815a0fe5ab7cd938e9a43d8d26d64464809d25a9115f81db2a4e"
     },
     {
       "bytes": 584,
@@ -361,9 +371,14 @@
       "sha256": "989f4b974657af306f85c3b3136fa86cf0aac7aef4bb031039c779a29c5d084c"
     },
     {
-      "bytes": 10048,
+      "bytes": 10647,
       "path": "m5_integration/src/grok_pipeline/harness.py",
-      "sha256": "6cd540787324b62fd70386d822fbcfca8ff23eaa570ee3843b2c3af45498f4e9"
+      "sha256": "bd39c20d82774fd1d7317fecda766b5676f73382d856a4d7148e2f6dfc2fa788"
+    },
+    {
+      "bytes": 382,
+      "path": "m5_integration/src/grok_pipeline/transport.py",
+      "sha256": "39d0147b468804800a6e221b30605b50bf3122ebec504cd4fddf86dbe6ebbe01"
     },
     {
       "bytes": 1657,
@@ -391,6 +406,11 @@
       "sha256": "b7f10868620a82f9d4219c479871aa34cbba30e01d0849f4c9dfa59837a291d5"
     },
     {
+      "bytes": 4961,
+      "path": "m5_integration/tests/test_public_transport.py",
+      "sha256": "abb72bf8d1ac582b5568bd55a1f5660c91b924a1eb0146b90d909c7e377430cd"
+    },
+    {
       "bytes": 1148,
       "path": "m5_integration/tests/test_restart_crash.py",
       "sha256": "eed0b2e541e686cd4ef1e4d12dedb8cc16fee653d61946561b4967ae9efffd0e"
@@ -406,9 +426,9 @@
       "sha256": "9ac5f7ca3215749a1a37e590b9b2856a1e5f4368f1269741eb139cd6a4a87951"
     },
     {
-      "bytes": 997,
+      "bytes": 1190,
       "path": "requirements.lock",
-      "sha256": "93ec09e5a6bd074087f8c3cbb6f1e38a9687c22b11e5884160241f10d2b1042f"
+      "sha256": "705ad68e46f5477c9f0c89eeb80bb14b9b8aca6685e6a2c881efadac712ea448"
     },
     {
       "bytes": 8685,
@@ -506,6 +526,11 @@
       "sha256": "37a86b45efb9a47a61a36449063e8e18d0cab3161329fc099eb21783169c4f0c"
     },
     {
+      "bytes": 818216,
+      "path": "vendor/wheels/setuptools-84.0.0-py3-none-any.whl",
+      "sha256": "51a52592b3b99e102b609654876bd65f19f999935166d1352678931132b0c670"
+    },
+    {
       "bytes": 14583,
       "path": "vendor/wheels/tomli-2.4.1-py3-none-any.whl",
       "sha256": "0d85819802132122da43cb86656f8d1f8c6587d54ae7dcaf30e90533028b49fe"
@@ -514,6 +539,11 @@
       "bytes": 45571,
       "path": "vendor/wheels/typing_extensions-4.16.0-py3-none-any.whl",
       "sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8"
+    },
+    {
+      "bytes": 33320,
+      "path": "vendor/wheels/wheel-0.48.0-py3-none-any.whl",
+      "sha256": "3217dcc807155e45db462d7ef2431f5ddda0d7273b700d05a67b271ceb1287ab"
     }
   ],
   "excluded": [
@@ -527,7 +557,7 @@
     "node_modules",
     "private"
   ],
-  "files": 103,
+  "files": 109,
   "name": "pipeline-lab-contractor-m1-m5",
   "packed_at": "2026-09-10T06:10:00Z",
   "packer": "python3 zipfile.ZIP_DEFLATED",

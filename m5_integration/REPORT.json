@@ -22,17 +22,23 @@
     "tests.test_probes::test_r13_source_in_identity",
     "tests.test_probes::test_a_slash_b_and_a_dunder_b_do_not_collide",
     "tests.test_probes::test_concurrent_pipeline_same_and_different_keys",
+    "tests.test_public_transport::test_public_wrapper_has_no_fake_internals",
+    "tests.test_public_transport::test_two_sequential_jobs_through_public_transport",
+    "tests.test_public_transport::test_replay_idempotent_through_public_transport",
+    "tests.test_public_transport::test_projection_timeout_retry_through_public_transport",
+    "tests.test_public_transport::test_restart_through_public_transport",
+    "tests.test_public_transport::test_concurrent_jobs_through_public_transport",
     "tests.test_restart_crash::test_restart_reopens_same_ledger",
     "tests.test_restart_crash::test_crash_before_manifest_leaves_unpublished"
   ],
   "python": "3.10.21",
-  "source_sha256": "9ef18a9be4073b8d5ebd71eebacd52db05a678fcc7214c26054e80d8823743f5",
-  "stdout_tail": "...............                                                          [100%]",
+  "source_sha256": "69888932da217a662962e37490c7a2081d41131bd3ad30443f4bd380c44e4e13",
+  "stdout_tail": ".....................                                                    [100%]",
   "tests": {
-    "collected": 15,
+    "collected": 21,
     "exit_code": 0,
     "failed": 0,
-    "passed": 15,
+    "passed": 21,
     "skipped": 0
   },
   "verdict": "PASS"

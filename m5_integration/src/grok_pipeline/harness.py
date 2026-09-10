@@ -12,6 +12,7 @@ from grok_locator import LocatorProfile, LocatorResolver, dumps_canonical, loads
 from grok_notion_projection import FakeTransport, Projector
 
 from . import fake_compute
+from .transport import Transport
 
 
 def synthetic_request_digest(request: dict[str, Any], sources: dict[str, bytes] | None = None) -> str:
@@ -38,8 +39,10 @@ class Pipeline:
         *,
         clock: Callable[[], int] | None = None,
         id_gen: Callable[[], str] | None = None,
-        transport: FakeTransport | None = None,
+        transport: Transport | None = None,
         lease_ms: int = 30_000,
+        token: str = "sandbox-token",
+        projection_target: str = "sandbox-page-001",
     ) -> None:
         self.root = root
         os.makedirs(root, exist_ok=True)
@@ -47,8 +50,10 @@ class Pipeline:
         self.store = AssetStore(clock=clock, id_gen=id_gen)
         self.ledger = JobLedger(os.path.join(root, "jobs.db"), clock=clock, id_gen=id_gen)
         self.projector = Projector(clock=clock, id_gen=id_gen)
+        self.token = token
+        self.projection_target = projection_target
         self.transport = transport or FakeTransport(
-            allowed_targets={"sandbox-page-001"}, token="sandbox-token"
+            allowed_targets={projection_target}, token=token
         )
         self.profile = LocatorProfile(
             dialect="posix",
@@ -60,6 +65,7 @@ class Pipeline:
         self.crash_at: str | None = None
         self.compute_calls = 0
         self.lease_ms = int(lease_ms)
+        self._last_target_revision = 0
 
     def _maybe_crash(self, point: str) -> None:
         if self.crash_at == point:
@@ -88,14 +94,22 @@ class Pipeline:
             },
             "revision": revision,
             "state": "SUCCEEDED",
-            "target": "sandbox-page-001",
+            "target": self.projection_target,
         }
 
     def _next_revision(self) -> int:
-        page = self.transport.pages.get("sandbox-page-001")
-        if page is None:
-            return 1
-        return int(page.revision) + 1
+        return int(self._last_target_revision) + 1
+
+    def _refresh_revision(self) -> int:
+        try:
+            page = self.transport.call(
+                "pages.retrieve", self.projection_target, {}, self.token
+            )
+            current = int(page.get("revision") or 0)
+        except Exception:
+            current = self._last_target_revision
+        self._last_target_revision = current
+        return current + 1
 
     def _load_event(self, row: dict[str, Any]) -> dict[str, Any] | None:
         if row.get("outbox"):
@@ -110,13 +124,14 @@ class Pipeline:
         last = {"status": "error", "reason_code": "REVISION_CONFLICT"}
         for _ in range(4):
             last = self.projector.project(
-                event, expected, self.transport, token="sandbox-token", compute=None
+                event, expected, self.transport, token=self.token, compute=None
             )
             if last["status"] == "ok":
+                self._last_target_revision = int(last.get("revision") or expected)
                 self.ledger.mark_projected(job_id, json.dumps(event), artifact_text)
                 return last
             if last.get("reason_code") in {"REVISION_CONFLICT", "STALE_REVISION"}:
-                expected = self._next_revision()
+                expected = self._refresh_revision()
                 event = dict(event)
                 event["revision"] = expected
                 self.ledger.store_outbox(job_id, json.dumps(event), artifact_text)
